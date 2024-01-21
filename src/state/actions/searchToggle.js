@@ -1,7 +1,7 @@
 import { SEARCH_TOGGLE } from "../types";
 
-export const setSearchToggle = (factory) => (dispatch) => {
-  dispatch(toggle(factory));
+export const setSearchToggle = (search) => (dispatch) => {
+  dispatch(toggle(search));
 };
 
 export const toggle = (value) => ({

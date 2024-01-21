@@ -1,8 +1,18 @@
-import { Route, Routes } from "react-router";
+import { Route, Routes, useLocation } from "react-router";
 import Dashboard from "./components/Dashboard";
 import Navbar from "./components/Navbar/Navbar.jsx";
+import Footer from "./components/Footer/Footer.jsx";
+import Shop from "./components/Shop.jsx";
+import PageNotFound from "./components/PageNotFound.jsx";
+import CustomerLogin from "./components/CustomerLogin.jsx";
+import CustomerSignup from "./components/CustomerSignup.jsx";
+import AdminLogin from "./components/admin/Login.jsx";
+import AdminDashboard from "./components/admin/Admin.jsx";
+import AdminProtectedRoutes from "./AdminProtectedRoutes.js";
 
 function App() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
   return (
     <section className="App bg-[#f5f5f7] h-screen bg-cover md:bg-top">
       <link
@@ -12,10 +22,45 @@ function App() {
         crossOrigin="anonymous"
       ></link>
 
-      <Navbar />
+      {/* <Navbar />
       <Routes>
+        <Route path="customer/account/login" element={<CustomerLogin />} />
+        <Route path="customer/account/signup" element={<CustomerSignup />} />
+        <Route path="/admin/account/login" element={<AdminLogin />} />
+        <Route
+          path="/Admin/Account/dashboard"
+          element={
+            <AdminProtectedRoutes>
+              <AdminDashboard />
+            </AdminProtectedRoutes>
+          }
+        />
         <Route path="/" element={<Dashboard />} />
+        <Route path="/Jewellery/Shop/:product" element={<Shop />} />
+        <Route path="/Shop/Diamonds" element={<Shop />} />
+        <Route path="*" element={<PageNotFound />} />
       </Routes>
+      <Footer /> */}
+
+      {!isAdminRoute && <Navbar />}
+      <Routes>
+        <Route path="customer/account/login" element={<CustomerLogin />} />
+        <Route path="customer/account/signup" element={<CustomerSignup />} />
+        <Route path="/admin/account/login" element={<AdminLogin />} />
+        <Route
+          path="/admin/account/dashboard"
+          element={
+            <AdminProtectedRoutes>
+              <AdminDashboard />
+            </AdminProtectedRoutes>
+          }
+        />
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/Jewellery/Shop/:product" element={<Shop />} />
+        <Route path="/Shop/Diamonds" element={<Shop />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+      {!isAdminRoute && <Footer />}
     </section>
   );
 }

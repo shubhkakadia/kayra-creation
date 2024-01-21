@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import searchIcon from "../../assets/search-icon.png";
 import companyLogo from "../../assets/logo.png";
 import calanderIcon from "../../assets/calendar-icon.png";
 import profileIcon from "../../assets/user-icon.png";
@@ -11,6 +10,7 @@ import { setSearchToggle } from "../../state/actions/searchToggle";
 import NavLink from "./NavLink";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { GoSearch } from "react-icons/go";
 
 export default function Navbar() {
   const [searchedList, setSearchedList] = useState([]);
@@ -58,12 +58,17 @@ export default function Navbar() {
       <div className="flex justify-between p-1">
         <div className="flex justify-start gap-14 ml-5 mt-[30px]">
           <div className="md:block hidden">
-            <img
+            <GoSearch
+              className="text-[20px] cursor-pointer"
+              onClick={handleSearchToggle}
+              title="Search"
+            />
+            {/* <img
               src={searchIcon}
               alt="search"
               className="navbar-icons"
               onClick={handleSearchToggle}
-            />
+            /> */}
           </div>
           <button
             className="md:hidden flex cursor-pointer outline-none text-[20px]"
@@ -74,8 +79,9 @@ export default function Navbar() {
           <div className="md:block hidden">
             <img
               src={contactIcon}
-              alt="search"
+              alt="contact"
               className="navbar-icons"
+              title="Contact"
               // onClick={handleSearchToggle}
             />
           </div>
@@ -91,7 +97,7 @@ export default function Navbar() {
           </Link>
           {open ? (
             <button
-              className="md:hidden flex nav-btn nav-close-btn p-1 cursor-pointer outline-none text-[20px] items-center absolute top-9 right-4 z-20"
+              className="fixed md:hidden flex nav-btn nav-close-btn p-1 cursor-pointer outline-none text-[20px] items-center top-9 right-4 z-20"
               onClick={() => setOpen(false)}
             >
               <FaTimes />
@@ -123,16 +129,32 @@ export default function Navbar() {
                 handleSearchInput(e.target.value);
               }}
             />
-            <img
-              src={searchIcon}
-              alt="close"
-              className="absolute top-[2px] right-[5px] h-[20px] mt-2 mr-1 opacity-50"
+            <GoSearch
+              className="text-[20px] cursor-pointer absolute top-[2px] right-[5px] h-[20px] mt-2 mr-1 opacity-50"
+              title="Search"
             />
-            {searchedList.map((item, i) => (
-              <div id={i} className="search-item">
-                {item}
+            {searchedList.length > 0 ? (
+              <div className="h-[400px] w-full bg-main-bg rounded-md px-3 py-3 shadow overflow-y-auto">
+                {searchedList.map((item, i) => (
+                  <div id={i} className="search-item my-3 cursor-pointer">
+                    {item}
+                  </div>
+                ))}
+
+                <div className="mt-5">
+                  <p className="font-semibold">Need Help?</p>
+                  <p>
+                    Contact{" "}
+                    <Link to="/" className="text-gray-500">
+                      Client Care
+                    </Link>
+                  </p>
+                  <p>Call 852-52482000</p>
+                </div>
               </div>
-            ))}
+            ) : (
+              <></>
+            )}
           </div>
           <div onClick={handleSearchToggle} className="close-popup"></div>
         </div>
@@ -140,13 +162,13 @@ export default function Navbar() {
         <div className="search-box"></div>
       )}
       <div className="md:flex hidden justify-center">
-        <NavLink />
+        <NavLink openState={null} onClose={() => setOpen(false)}/>
       </div>
       {/* Mobile View */}
       <ul
         className={`
         md:hidden bg-white fixed w-full top-0 overflow-y-auto bottom-0 py-24 pl-4
-        duration-500 ${open ? "left-0" : "left-[-100%]"}
+        duration-500 z-[1] ${open ? "left-0" : "left-[-100%]"}
         `}
       >
         <li>
@@ -162,10 +184,9 @@ export default function Navbar() {
               handleSearchInput(e.target.value);
             }}
           />
-          <img
-            src={searchIcon}
-            alt="close"
-            className="h-[20px] top-[100px] left-7 absolute opacity-40 md:hidden block"
+          <GoSearch
+            className="text-[20px] cursor-pointer h-[20px] top-[100px] left-7 absolute opacity-40 md:hidden block"
+            title="Search"
           />
         </div>
         <div
@@ -173,7 +194,7 @@ export default function Navbar() {
             searchedList.length > 0
               ? "h-[80vh] block overflow-y-auto"
               : "h-full hidden"
-          } py-4`}
+          } py-4 md:hidden`}
         >
           {searchedList.map((item, i) => (
             <div id={i} className="px-4 py-2 text-[17px]">

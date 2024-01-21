@@ -1,13 +1,24 @@
 @import url("https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap");
+/* import "react-toastify/dist/ReactToastify.css"; */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 .App {
-  
 }
 
 /* Dashboard */
+.block1 {
+  flex: 4;
+}
+
+.block2 {
+  flex: 3;
+}
+
+.selection-underline {
+  border-bottom: 3px solid #5ba3bf;
+}
 
 /* Navbar */
 .navbar-icons {
@@ -29,6 +40,7 @@
   justify-content: center;
   padding-top: 8%;
   height: 100vh;
+  z-index: 20;
 }
 
 .close-popup {
