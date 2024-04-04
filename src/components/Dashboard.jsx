@@ -1,3 +1,5 @@
+import React from 'react'
+
 import { useState } from "react";
 import slider1 from "../assets/home-banner.png";
 import slider2 from "../assets/logo.png";

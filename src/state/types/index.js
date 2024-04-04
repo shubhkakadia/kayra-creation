@@ -6,6 +6,10 @@ const SELECTED_SHOP = {
   selected: "None",
 };
 
+const SELECTED_PRODUCT = {
+  selected: "None",
+};
+
 const ADMIN = {
   load: "load",
   success: "admin_success",
@@ -24,4 +28,4 @@ const UPDATE_PRODUCT = {
   error: "update_error",
 };
 
-export { SEARCH_TOGGLE, SELECTED_SHOP, ADMIN, ALLPRODUCTS, UPDATE_PRODUCT };
+export { SEARCH_TOGGLE, SELECTED_SHOP, ADMIN, ALLPRODUCTS, UPDATE_PRODUCT, SELECTED_PRODUCT };

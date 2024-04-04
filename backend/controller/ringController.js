@@ -1,6 +1,62 @@
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require("uuid");
+
+const {
+  PutObjectCommand,
+  S3Client,
+  GetObjectCommand,
+} = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+
+const { Upload } = require("@aws-sdk/lib-storage");
+
+// const { fileType } = require("file-type");
 
 const Ring = require("../model/ringData");
+
+const generateUploadURL = async (req, res) => {
+  try {
+    const client = new S3Client({
+      region: "us-east-1",
+      credentials: {
+        accessKeyId: "AKIARBH5IBNXRRSC72UK",
+        secretAccessKey: "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",
+      },
+    });
+
+    const command = new PutObjectCommand({
+      Bucket: "kayra-creation-products",
+      Key: `products/${req.body.filename}`,
+      ContentType: req.body.contentType,
+    });
+
+    console.log(command, client);
+
+    const url = await getSignedUrl(client, command);
+
+    console.log("url for uploading: ", await url);
+
+    // try {
+    //   const response = await client.send(command);
+    //   console.log(response);
+    //   console.log("sent")
+    // } catch (err) {
+    //   console.error(err);
+    // }
+
+    res.status(200).send({ url: url });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// const client = new S3Client({
+//   region: "us-east-1",
+//   credentials: {
+//     accessKeyId: "AKIARBH5IBNXRRSC72UK",
+//     secretAccessKey: "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",
+//   },
+// });
 
 const addRing = async (req, res) => {
   try {
@@ -23,6 +79,84 @@ const addRing = async (req, res) => {
       productType,
     } = req.body;
 
+    const client = new S3Client({
+      region: "us-east-1",
+      credentials: {
+        accessKeyId: "AKIARBH5IBNXRRSC72UK",
+        secretAccessKey: "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",
+      },
+    });
+
+    // Function to upload a single image and return the URL
+    const uploadImage = async (imageBlob, imageName) => {
+      // const result = await fileType.fromBuffer(imageBlob);
+
+      const uploader = new Upload({
+        client: client, // Your S3 client
+        params: {
+          Bucket: "kayra-creation-products",
+          Key: imageName,
+          Body: imageBlob.data,
+        },
+      });
+
+      uploader.on("httpUploadProgress", (progress) => {
+        console.log(
+          `Upload progress: ${progress.loaded} of ${progress.total} bytes`
+        );
+      });
+
+      await uploader.done();
+
+      // const putCommand = new PutObjectCommand({
+      //   Bucket: "kayra-creation-products",
+      //   Key: imageName,
+      //   Body: imageBlob,
+      // });
+
+      // await client.send(putCommand);
+
+      const getCommand = new GetObjectCommand({
+        Bucket: "kayra-creation-products",
+        Key: imageName,
+      });
+
+      const url = await getSignedUrl(client, getCommand);
+      console.log("url", url);
+      return url;
+    };
+
+    // Iterate over images, upload them, and replace blob data with URL
+    const uploadedImages = await Promise.all(
+      images.map((blob, index) =>
+        uploadImage(blob, `media-${req.body.productNo}-${uuidv4()}`)
+      )
+    );
+
+    // const fileStream = Readable.from(req.body.media.buffer);
+
+    // const putCommand = new PutObjectCommand({
+    //   Bucket: "kayra-creation-products",
+    //   Key: `products/${req.body.media.originalname}`,
+    //   ContentType: req.file.type,
+    //   Body: fileStream,
+    // });
+
+    // const getCommand = new GetObjectCommand({
+    //   Bucket: "kayra-creation-products",
+    //   Key: `products/${req.body.media.originalname}`,
+    //   // Body: "Hello S3!",
+    // });
+
+    // try{
+    //   await client.send(putCommand)
+    //   console.log('File upload successfully');
+    //   const url = await getSignedUrl(client, getCommand)
+    //   console.log("url", await url);
+    // } catch(err) {
+    //   console.error(err);
+    // }
+
     const newRing = new Ring({
       id: uuidv4(),
       name,
@@ -35,7 +169,7 @@ const addRing = async (req, res) => {
       goldPurity,
       descriptionDetails,
       dateAdded,
-      images,
+      images: uploadedImages,
       priceUSD,
       productNo,
       active,
@@ -44,7 +178,9 @@ const addRing = async (req, res) => {
 
     await newRing.save();
     console.log(`New Ring added productNo: ${req.body.productNo}`);
-    res.status(201).send({message: `New Ring added productNo: ${req.body.productNo}`});
+    res
+      .status(201)
+      .send({ message: `New Ring added productNo: ${req.body.productNo}` });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.toString() });
@@ -110,10 +246,10 @@ const updateRingByProductNo = async (req, res) => {
     );
 
     if (result) {
-      console.log(
-        `Product Updated Succesfull, ProductNo: ${productNo}`
-      );
-      res.status(200).json({message: `Product Updated Succesfull, ProductNo: ${productNo}`});
+      console.log(`Product Updated Succesfull, ProductNo: ${productNo}`);
+      res.status(200).json({
+        message: `Product Updated Succesfull, ProductNo: ${productNo}`,
+      });
     } else {
       res.status(404).json({ error: "Ring not found." });
     }
@@ -163,18 +299,35 @@ const updateRingField = async (req, res) => {
       { $set: { productType: "ring" } } // update operation to add productType field
     );
 
-    res.status(200).json({ message: 'All documents updated successfully', result });
+    res
+      .status(200)
+      .json({ message: "All documents updated successfully", result });
+  } catch (error) {
+    console.error("Error updating documents:", error);
+    res.status(500).json({ message: "Error updating documents", error });
   }
-  catch (error) {
-    console.error('Error updating documents:', error);
-    res.status(500).json({ message: 'Error updating documents', error });
+};
+
+const getRingByProductNo = async (req, res) => {
+  try {
+    const result = await Ring.findOne({ productNo: req.params.productNo });
+
+    if (result) {
+      res
+        .status(200)
+        .json(result);
+      console.log(`Ring found by productNo: ${req.params.productNo}`);
+    } else {
+      res.status(404).json({ error: "Ring not found." });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-}
-
-
-
+};
 
 module.exports = {
+  generateUploadURL,
   addRing,
   getAllRings,
   getRingsWithPagination,
@@ -182,5 +335,6 @@ module.exports = {
   updateRingByProductNo,
   findRingsByCategory,
   findRingByActive,
-  updateRingField
+  updateRingField,
+  getRingByProductNo,
 };

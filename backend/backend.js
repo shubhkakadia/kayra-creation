@@ -8,7 +8,7 @@ const bodyparser = require("body-parser");
 
 app.use(express.json({limit: '50mb'}))
 app.use(cors());
-app.use("/ring", ringRoutes)
+app.use("/rings", ringRoutes)
 app.use("/admin", adminRoutes)
 app.use(bodyparser.urlencoded({extended: true, parameterLimit: 100000, limit: "500mb"}));
 // app.use(express.json({limit: '50mb'}));

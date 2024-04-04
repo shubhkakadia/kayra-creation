@@ -11,6 +11,8 @@ const {
   getAllRings,
   findRingByActive,
   updateRingField,
+  generateUploadURL,
+  getRingByProductNo
 } = require("../controller/ringController");
 
 router.use(bodyparser.json());
@@ -24,6 +26,9 @@ router.get("/getall", getAllRings);
 // Route to get rings with pagination
 router.get("/getpage", getRingsWithPagination);
 
+// Route to get rings with pagination
+router.get("/getbyproductno/:productNo", getRingByProductNo);
+
 // Route to delete a ring by productNo
 router.delete("/delete/:id", deleteRingById);
 
@@ -36,6 +41,9 @@ router.get("/get/:category", findRingsByCategory);
 // Route to find rings by active status
 router.get("/getactive", findRingByActive);
 
-router.post("/updatefield", updateRingField)
+router.post("/updatefield", updateRingField);
+
+router.get("/uploadurl", generateUploadURL);
+
 
 module.exports = router;

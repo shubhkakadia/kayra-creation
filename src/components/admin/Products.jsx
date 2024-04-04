@@ -12,7 +12,17 @@ import axios from "axios";
 
 import validator from "validator";
 
+import {
+  PutObjectCommand,
+  S3Client,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
+
+import temp_image from "../../assets/Bangles-home.jpg";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
 const AdminProductsPage = () => {
+  const serverApi = process.env.REACT_APP_API_URL;
   const [selectProduct, setSelectProduct] = useState(null);
 
   const [selectProductNoEdits, setSelectProductNoEdits] = useState(null);
@@ -38,6 +48,69 @@ const AdminProductsPage = () => {
   const [selectedMetalColors, setSelectedMetalColors] = useState([]);
   const [selectedClarity, setSelectedClarity] = useState([]);
   const [selectedGoldPurity, setSelectedGoldPurity] = useState([]);
+
+  const client = new S3Client({
+    region: "us-east-1",
+    credentials: {
+      accessKeyId: "AKIARBH5IBNXRRSC72UK",
+      secretAccessKey: "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",
+    },
+  });
+
+  const put = async (contentType) => {
+    const command = new PutObjectCommand({
+      Bucket: "kayra-creation-products",
+      Key: `products/${temp_image}`,
+      ContentType: contentType,
+
+      // Body: "Hello S3!",
+    });
+
+    console.log(command, client);
+
+    const url = await getSignedUrl(client, command);
+
+    console.log("url for uploading: ", await url);
+
+    // try {
+    //   const response = await client.send(command);
+    //   console.log(response);
+    //   console.log("sent")
+    // } catch (err) {
+    //   console.error(err);
+    // }
+
+    return url;
+  };
+  const get = async () => {
+    const command = new GetObjectCommand({
+      Bucket: "kayra-creation-products",
+      Key: "tiffany-infinitynarrow-band-ring-31043689_1019256_ED_M.webp",
+      // Body: "Hello S3!",
+    });
+
+    const url = await getSignedUrl(client, command);
+    console.log("url", await url);
+
+    // console.log("command", client.send(command))
+    // try {
+    //   const getObjectResult = await client.send(command);
+    //   console.log("sent")
+    //   console.log(getObjectResult);
+    //   const bodyStream = getObjectResult.Body;
+    //   const bodyAsString = await bodyStream.transformToString();
+    //   console.log(bodyAsString);
+    // } catch (err) {
+    //   console.error(err);
+    // }
+    return url;
+  };
+
+  useEffect(() => {
+    // get();
+    // put("image/jpg");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // const productTypeList = ["Necklaces", "Pendants", "Bracelets", "Earrings", "Rings", "Charms", "Men's Jewellery"];
   // const clarityRangeList = ["FL", "IF", "VVS1", "VVS2", "VS1", "VS2", "SI1", "SI2", "I1", "I2", "I3"];
@@ -75,7 +148,7 @@ const AdminProductsPage = () => {
   const [newProduct, setNewProduct] = useState(initialState);
 
   useEffect(() => {
-    getallproducts("ring");
+    getallproducts("rings");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -148,7 +221,7 @@ const AdminProductsPage = () => {
     let config = {
       method: "post",
       maxBodyLength: Infinity,
-      url: `http://localhost:5000/${product}/add`,
+      url: `${serverApi}${product}/add`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -227,6 +300,7 @@ const AdminProductsPage = () => {
     ActiveToggle,
     selectedProductType
   ) => {
+    
     // Function to filter by search term
     const filterBySearchTerm = (products) => {
       if (!searchQuery) return products;
@@ -505,18 +579,27 @@ const AdminProductsPage = () => {
       }
     } else if (product === "new") {
       if (file) {
+        // console.log("S3 before", newProduct);
         const reader = new FileReader();
         reader.readAsDataURL(file);
 
+        // const newImages = [...newProduct.images];
+        // newImages[index] = {data: URL.createObjectURL(file), fileType: file.type};
+        // setNewProduct({ ...newProduct, images: newImages });
+        console.log(file);
         reader.onloadend = () => {
           const blobUrl = reader.result;
           const newImages = [...newProduct.images];
-          newImages[index] = blobUrl;
+          newImages[index] = { data: blobUrl, fileType: file.type };
           setNewProduct({ ...newProduct, images: newImages });
         };
+        // console.log("S3", newProduct);
       }
     }
   };
+  console.log("S3", newProduct);
+
+  const uploadMediaS3 = () => {};
 
   const handleSaveNewProduct = () => {
     const isValid = Object.keys(newProduct).every((field) =>
@@ -977,7 +1060,7 @@ const AdminProductsPage = () => {
                               className="w-full h-full object-contain"
                             />
                           </SwiperSlide>
-                        ) : (
+                        ) : img.includes("video") ? (
                           <SwiperSlide>
                             <video
                               src={product.images[key]}
@@ -985,6 +1068,10 @@ const AdminProductsPage = () => {
                               controls
                               className="w-full h-full object-contain"
                             />
+                          </SwiperSlide>
+                        ) : (
+                          <SwiperSlide>
+                            <img src={defaultImage} alt="" />
                           </SwiperSlide>
                         )}
                       </div>
@@ -1255,18 +1342,26 @@ const AdminProductsPage = () => {
               {Array.from({ length: newProduct?.images?.length })?.map(
                 (_, index) => (
                   <div key={index} className="relative group">
-                    {newProduct?.images[index]?.includes("image") ? (
-                      <img
-                        src={newProduct.images[index]}
-                        alt={`Media ${index + 1}`}
-                        className="w-full h-full object-contain rounded-md"
-                      />
-                    ) : (
+                    {newProduct?.images[index]?.fileType?.includes("video") ? (
                       <video
-                        src={newProduct.images[index]}
+                        src={newProduct.images[index].data}
                         className="w-full h-full object-contain rounded-md"
                         controls
                         autoPlay
+                      />
+                    ) : newProduct?.images[index]?.fileType?.includes(
+                        "image"
+                      ) ? (
+                      <img
+                        src={newProduct.images[index].data}
+                        alt={`${defaultImage}`}
+                        className="w-full h-full object-contain rounded-md"
+                      />
+                    ) : (
+                      <img
+                        src={defaultImage}
+                        alt={`${defaultImage}`}
+                        className="w-full h-full object-contain rounded-md"
                       />
                     )}
 

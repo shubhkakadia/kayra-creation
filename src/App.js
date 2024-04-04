@@ -1,3 +1,5 @@
+import React from 'react'
+
 import { Route, Routes, useLocation } from "react-router";
 import Dashboard from "./components/Dashboard";
 import Navbar from "./components/Navbar/Navbar.jsx";
@@ -9,12 +11,13 @@ import CustomerSignup from "./components/CustomerSignup.jsx";
 import AdminLogin from "./components/admin/Login.jsx";
 import AdminDashboard from "./components/admin/Admin.jsx";
 import AdminProtectedRoutes from "./AdminProtectedRoutes.js";
+import Product from "./components/product.jsx";
 
 function App() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
   return (
-    <section className="App bg-[#f5f5f7] h-screen bg-cover md:bg-top">
+    <section className="App bg-[#f5f5f7] bg-cover md:bg-top">
       <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
         rel="stylesheet"
@@ -56,7 +59,8 @@ function App() {
           }
         />
         <Route path="/" element={<Dashboard />} />
-        <Route path="/Jewellery/Shop/:product" element={<Shop />} />
+        <Route path="/Jewellery/Shop/:category" element={<Shop />} />
+        <Route path="/Jewellery/:category/:productNo" element={<Product />} />
         <Route path="/Shop/Diamonds" element={<Shop />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
