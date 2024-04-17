@@ -1,0 +1,78 @@
+[{
+  "_id": {
+    "$oid": "66138706c117415ce82366f0"
+  },
+  "id": "820bd15c-926c-4919-83c8-1e35afa3bf79",
+  "name": "Spend Believe",
+  "productType": "Bracelet",
+  "category": "Vintage",
+  "caratWt": 2.44,
+  "colorRange": "H-I",
+  "clarityRange": "VVS1",
+  "metalColor": "Yellow",
+  "netWeight": "8.21g",
+  "goldPurity": "18K",
+  "descriptionDetails": "Agreement person cold anyone second usually.",
+  "dateAdded": {
+    "$date": "2024-04-07T20:25:00.000Z"
+  },
+  "images": [
+    {
+      "data": "https://kayra-creation-products.s3.us-east-1.amazonaws.com/products/tiffany-infinitynarrow-band-ring-31043689_1019257_SV_1_M.webp",
+      "fileType": "image/webp"
+    },
+    {
+      "data": "https://kayra-creation-products.s3.us-east-1.amazonaws.com/products/production%20ID_5106444.mp4",
+      "fileType": "video/mp4"
+    }
+  ],
+  "priceUSD": 2239,
+  "productNo": 2180,
+  "active": true,
+  "createdAt": {
+    "$date": "2024-04-08T05:56:22.681Z"
+  },
+  "updatedAt": {
+    "$date": "2024-04-08T06:29:08.103Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "66139945c117415ce8236763"
+  },
+  "id": "31744fb0-eac4-4c7d-b659-b0c2e1e5a15d",
+  "name": "Play Scientist",
+  "productType": "Ring",
+  "category": "Engagement",
+  "caratWt": 2.84,
+  "colorRange": "D-E",
+  "clarityRange": "VS2",
+  "metalColor": "Rose",
+  "netWeight": "1.53g",
+  "goldPurity": "24K",
+  "descriptionDetails": "Statement control focus only. Soldier force car play stuff. Nation word past quite score among.\\nPart fast TV operation. Same age hear role mean two. His table pull cause both challenge.",
+  "dateAdded": {
+    "$date": "2024-04-07T21:05:00.000Z"
+  },
+  "images": [
+    {
+      "data": "https://kayra-creation-products.s3.us-east-1.amazonaws.com/products/Bracelet-Home.jpg",
+      "fileType": "image/jpeg"
+    },
+    {
+      "data": "https://kayra-creation-products.s3.us-east-1.amazonaws.com/products/Necklace-Home.jpg",
+      "fileType": "image/jpeg"
+    }
+  ],
+  "priceUSD": 9619,
+  "productNo": 5406,
+  "active": true,
+  "createdAt": {
+    "$date": "2024-04-08T07:14:13.351Z"
+  },
+  "updatedAt": {
+    "$date": "2024-04-08T07:14:13.351Z"
+  },
+  "__v": 0
+}]

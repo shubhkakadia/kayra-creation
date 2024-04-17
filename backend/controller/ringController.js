@@ -1,4 +1,6 @@
 const { v4: uuidv4 } = require("uuid");
+const multer = require('multer');
+const AWS = require('aws-sdk');
 
 const {
   PutObjectCommand,
@@ -8,10 +10,48 @@ const {
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 const { Upload } = require("@aws-sdk/lib-storage");
+const upload = multer({dest: 'upload/'})
 
+const s3 = new AWS.S3();
 // const { fileType } = require("file-type");
 
 const Ring = require("../model/ringData");
+
+const uploadMediaToS3 = async (req, res) => {
+  try {
+    // Use the multer middleware to handle the file upload
+    await upload.single('file')(req, res, async (err) => {
+      if (err) {
+        console.error(err);
+        return res.status(400).send('Error uploading file.');
+      }
+
+      // Check if a file was uploaded
+      if (!req.file) {
+        return res.status(400).send('No file uploaded.');
+      }
+
+      // Read the file from the temporary directory
+      const fileContent = req.file.buffer;
+
+      // Set up S3 upload parameters
+      const params = {
+        Bucket: 'YOUR_BUCKET_NAME', // Replace with your bucket name
+        Key: req.file.originalname, // Use the original file name as the key
+        Body: fileContent,
+      };
+
+      // Upload the file to S3
+      const data = await s3.upload(params).promise();
+
+      // Return the uploaded file's location
+      res.send(`File uploaded successfully. Location: ${data.Location}`);
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('An error occurred while uploading the file.');
+  }
+};
 
 const generateUploadURL = async (req, res) => {
   try {
@@ -79,59 +119,58 @@ const addRing = async (req, res) => {
       productType,
     } = req.body;
 
-    const client = new S3Client({
-      region: "us-east-1",
-      credentials: {
-        accessKeyId: "AKIARBH5IBNXRRSC72UK",
-        secretAccessKey: "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",
-      },
-    });
+    // const client = new S3Client({
+    //   region: "us-east-1",
+    //   credentials: {
+    //     accessKeyId: "AKIARBH5IBNXRRSC72UK",
+    //     secretAccessKey: "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",
+    //   },
+    // });
 
-    // Function to upload a single image and return the URL
-    const uploadImage = async (imageBlob, imageName) => {
-      // const result = await fileType.fromBuffer(imageBlob);
+    // const uploadImage = async (imageBlob, imageName) => {
+    //   // const result = await fileType.fromBuffer(imageBlob);
 
-      const uploader = new Upload({
-        client: client, // Your S3 client
-        params: {
-          Bucket: "kayra-creation-products",
-          Key: imageName,
-          Body: imageBlob.data,
-        },
-      });
+    //   const uploader = new Upload({
+    //     client: client, // Your S3 client
+    //     params: {
+    //       Bucket: "kayra-creation-products",
+    //       Key: imageName,
+    //       Body: imageBlob.data,
+    //     },
+    //   });
 
-      uploader.on("httpUploadProgress", (progress) => {
-        console.log(
-          `Upload progress: ${progress.loaded} of ${progress.total} bytes`
-        );
-      });
+    //   uploader.on("httpUploadProgress", (progress) => {
+    //     console.log(
+    //       `Upload progress: ${progress.loaded} of ${progress.total} bytes`
+    //     );
+    //   });
 
-      await uploader.done();
+    //   await uploader.done();
 
-      // const putCommand = new PutObjectCommand({
-      //   Bucket: "kayra-creation-products",
-      //   Key: imageName,
-      //   Body: imageBlob,
-      // });
+    //   // const putCommand = new PutObjectCommand({
+    //   //   Bucket: "kayra-creation-products",
+    //   //   Key: imageName,
+    //   //   Body: imageBlob,
+    //   // });
 
-      // await client.send(putCommand);
+    //   // await client.send(putCommand);
 
-      const getCommand = new GetObjectCommand({
-        Bucket: "kayra-creation-products",
-        Key: imageName,
-      });
+    //   const getCommand = new GetObjectCommand({
+    //     Bucket: "kayra-creation-products",
+    //     Key: imageName,
+    //   });
 
-      const url = await getSignedUrl(client, getCommand);
-      console.log("url", url);
-      return url;
-    };
+    //   const url = await getSignedUrl(client, getCommand);
+    //   console.log("url", url);
+    //   return url;
+    // };
 
-    // Iterate over images, upload them, and replace blob data with URL
-    const uploadedImages = await Promise.all(
-      images.map((blob, index) =>
-        uploadImage(blob, `media-${req.body.productNo}-${uuidv4()}`)
-      )
-    );
+    // // Iterate over images, upload them, and replace blob data with URL
+    // const uploadedImages = await Promise.all(
+    //   images.map((blob, index) =>
+    //     uploadImage(blob, `media-${req.body.productNo}-${uuidv4()}`)
+    //   )
+    // );
 
     // const fileStream = Readable.from(req.body.media.buffer);
 
@@ -169,7 +208,7 @@ const addRing = async (req, res) => {
       goldPurity,
       descriptionDetails,
       dateAdded,
-      images: uploadedImages,
+      images,
       priceUSD,
       productNo,
       active,

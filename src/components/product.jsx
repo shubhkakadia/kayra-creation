@@ -110,7 +110,7 @@ export default function Product() {
               {selectedProduct.success.images.map((image, index) => (
                 <div className="w-auto h-auto min-h-[300px] min-w-[300px] ">
                   <img
-                    src={image}
+                    src={image.data}
                     alt="media"
                     className="w-full h-full object-cover"
                   />

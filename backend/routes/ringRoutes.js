@@ -43,7 +43,7 @@ router.get("/getactive", findRingByActive);
 
 router.post("/updatefield", updateRingField);
 
-router.get("/uploadurl", generateUploadURL);
+router.post("/uploadurl", generateUploadURL);
 
 
 module.exports = router;

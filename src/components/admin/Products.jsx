@@ -35,6 +35,7 @@ const AdminProductsPage = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage] = useState(10);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("recommendations");
@@ -56,6 +57,30 @@ const AdminProductsPage = () => {
       secretAccessKey: "lQkjLbDJ86ca3GDTwBGkP13yPAokJ68TxU81K+PT",
     },
   });
+
+  const generatePreSignedURL = async (fileName, contentType) => {
+    try {
+      const data = JSON.stringify({
+        filename: fileName,
+        contentType: contentType,
+      });
+      const config = {
+        method: "post",
+        maxBodyLength: Infinity,
+        url: "http://localhost:5000/rings/uploadurl",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: data,
+      };
+
+      const response = await axios.request(config);
+      return response.data.url;
+    } catch (error) {
+      console.error("Error generating pre-signed URL:", error);
+      throw error; // Or handle the error in a different way
+    }
+  };
 
   const put = async (contentType) => {
     const command = new PutObjectCommand({
@@ -82,6 +107,7 @@ const AdminProductsPage = () => {
 
     return url;
   };
+
   const get = async () => {
     const command = new GetObjectCommand({
       Bucket: "kayra-creation-products",
@@ -182,7 +208,7 @@ const AdminProductsPage = () => {
     let config = {
       method: "put",
       maxBodyLength: Infinity,
-      url: `http://127.0.0.1:5000/${product}/update/${productObj.productNo}`,
+      url: `${serverApi}${product}/update/${productObj.productNo}`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -221,7 +247,7 @@ const AdminProductsPage = () => {
     let config = {
       method: "post",
       maxBodyLength: Infinity,
-      url: `${serverApi}${product}/add`,
+      url: `${serverApi}rings/add`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -300,7 +326,6 @@ const AdminProductsPage = () => {
     ActiveToggle,
     selectedProductType
   ) => {
-    
     // Function to filter by search term
     const filterBySearchTerm = (products) => {
       if (!searchQuery) return products;
@@ -554,7 +579,7 @@ const AdminProductsPage = () => {
       validateField(field, selectProduct[field])
     );
     if (isValid) {
-      update_Product("ring", selectProduct);
+      update_Product("rings", selectProduct);
       handleCancelEdit();
       setSelectProduct(null);
     } else {
@@ -562,44 +587,70 @@ const AdminProductsPage = () => {
     }
   };
 
-  const handleImageUpload = (index, product, event) => {
-    const file = event.target.files[0];
-
+  const handleImageUpload = async (index, product, file) => {
+    const presignedurl = await generatePreSignedURL(file.name, file.type);
+    const object_url = await uploadMediaS3(file, presignedurl);
+    
     if (product === "update") {
       if (file) {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-
-        reader.onloadend = () => {
-          const blobUrl = reader.result;
-          const newImages = [...selectProduct.images];
-          newImages[index] = blobUrl;
-          setSelectProduct({ ...selectProduct, images: newImages });
-        };
+        const newImages = [...selectProduct.images];
+        newImages[index] = { data: object_url, fileType: file.type };
+        setSelectProduct({ ...selectProduct, images: newImages });
+        console.log("S3", selectProduct);
       }
     } else if (product === "new") {
       if (file) {
-        // console.log("S3 before", newProduct);
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-
-        // const newImages = [...newProduct.images];
-        // newImages[index] = {data: URL.createObjectURL(file), fileType: file.type};
-        // setNewProduct({ ...newProduct, images: newImages });
-        console.log(file);
-        reader.onloadend = () => {
-          const blobUrl = reader.result;
-          const newImages = [...newProduct.images];
-          newImages[index] = { data: blobUrl, fileType: file.type };
-          setNewProduct({ ...newProduct, images: newImages });
-        };
-        // console.log("S3", newProduct);
+        const newImages = [...newProduct.images];
+        newImages[index] = { data: object_url, fileType: file.type };
+        setNewProduct({ ...newProduct, images: newImages });
+        console.log("S3", newProduct);
       }
     }
   };
-  console.log("S3", newProduct);
 
-  const uploadMediaS3 = () => {};
+  const uploadMediaS3 = async (file, preSignedUrl) => {
+    if (!file) return;
+    const toastId = toast.loading("Uploading Media");
+
+    try {
+      const response = await fetch(preSignedUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+        },
+      });
+
+      if (response.ok) {
+        toast.update(toastId, {
+          render: `Media Uploaded Successfully`,
+          type: "success",
+          isLoading: false,
+          autoClose: 3000,
+        });
+        console.log("File uploaded successfully");
+        // Remove the query parameters to get the object URL
+        const objectUrl = new URL(preSignedUrl);
+        objectUrl.search = ""; // This removes the query parameters
+        console.log("object url", objectUrl);
+        return objectUrl.href; // Return the URL of the uploaded object
+      } else {
+        toast.update(toastId, {
+          render: `Failed to upload media`,
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+        });
+        console.error("Error uploading file");
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    }
+  };
+
+  useEffect(() => {
+    console.log("upload progress", uploadProgress);
+  }, [uploadProgress]);
 
   const handleSaveNewProduct = () => {
     const isValid = Object.keys(newProduct).every((field) =>
@@ -607,7 +658,7 @@ const AdminProductsPage = () => {
     );
 
     if (isValid) {
-      add_product("ring", newProduct);
+      add_product(newProduct.productType.toLocaleLowerCase(), newProduct);
     } else {
       toast.error(`Please correct the errors before saving.`);
     }
@@ -1052,18 +1103,18 @@ const AdminProductsPage = () => {
                   {product?.images?.length > 0 ? (
                     product?.images?.map((img, key) => (
                       <div key={key}>
-                        {img.includes("image") ? (
+                        {img.fileType?.includes("image") ? (
                           <SwiperSlide>
                             <img
-                              src={product.images[key] || defaultImage}
+                              src={product.images[key].data || defaultImage}
                               alt=""
                               className="w-full h-full object-contain"
                             />
                           </SwiperSlide>
-                        ) : img.includes("video") ? (
+                        ) : img.fileType?.includes("video") ? (
                           <SwiperSlide>
                             <video
-                              src={product.images[key]}
+                              src={product.images[key].data}
                               autoPlay
                               controls
                               className="w-full h-full object-contain"
@@ -1145,15 +1196,17 @@ const AdminProductsPage = () => {
               {Array.from({ length: selectProduct?.images?.length })?.map(
                 (_, index) => (
                   <div key={index} className="relative group">
-                    {selectProduct?.images[index]?.includes("image") ? (
+                    {selectProduct?.images[index]?.fileType?.includes(
+                        "image"
+                      ) ? (
                       <img
-                        src={selectProduct.images[index]}
+                        src={selectProduct.images[index].data}
                         alt={`Media ${index + 1}`}
                         className="w-full h-full object-contain rounded-md"
                       />
                     ) : (
                       <video
-                        src={selectProduct.images[index]}
+                        src={selectProduct.images[index].data}
                         className="w-full h-full object-contain rounded-md"
                         controls
                         autoPlay
@@ -1188,7 +1241,7 @@ const AdminProductsPage = () => {
                       id={`file-input-${index}`}
                       type="file"
                       onChange={(e) => {
-                        handleImageUpload(index, "update", e);
+                        handleImageUpload(index, "update", e.target.files[0]);
                         handleEdit("images");
                       }}
                       className="hidden"
@@ -1392,7 +1445,7 @@ const AdminProductsPage = () => {
                       id={`file-input-${index}`}
                       type="file"
                       onChange={(e) => {
-                        handleImageUpload(index, "new", e);
+                        handleImageUpload(index, "new", e.target.files[0]);
                         handleEdit("images");
                       }}
                       className="hidden"

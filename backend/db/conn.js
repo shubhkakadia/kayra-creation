@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
-const url = "mongodb://127.0.0.1:27017/KayraCreation";
+const uri = "mongodb+srv://KayraAdmin:KayraAdmin123@kayra-creation.y1eaqmv.mongodb.net/?retryWrites=true&w=majority&appName=Kayra-Creation";
 
 mongoose
-  .connect(url, {
+  .connect(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })

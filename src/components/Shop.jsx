@@ -360,29 +360,29 @@ export default function Shop() {
   );
 
   // Function to check if click is outside the dropdown
-  const handleClickOutside = (event) => {
-    if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
-      setIsMetalColorOpen(false);
-      setIsCategoryOpen(false);
-      setSortByIsOpen(false);
-    }
-  };
-  const handleScroll = () => {
-    setIsMetalColorOpen(false);
-    setIsCategoryOpen(false);
-    setSortByIsOpen(false);
-  };
+  // const handleClickOutside = (event) => {
+  //   if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+  //     setIsMetalColorOpen(false);
+  //     setIsCategoryOpen(false);
+  //     setSortByIsOpen(false);
+  //   }
+  // };
+  // const handleScroll = () => {
+  //   setIsMetalColorOpen(false);
+  //   setIsCategoryOpen(false);
+  //   setSortByIsOpen(false);
+  // };
 
-  useEffect(() => {
-    // Add event listener when component mounts
-    document.addEventListener("mousedown", handleClickOutside);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    // Remove event listener on cleanup
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  // useEffect(() => {
+  //   // Add event listener when component mounts
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   window.addEventListener("scroll", handleScroll, { passive: true });
+  //   // Remove event listener on cleanup
+  //   return () => {
+  //     window.removeEventListener("scroll", handleScroll);
+  //     document.removeEventListener("mousedown", handleClickOutside);
+  //   };
+  // }, []);
 
   console.log(products);
 
@@ -413,7 +413,7 @@ export default function Shop() {
 
       {/* Filter and Sort */}
       <div className="md:block hidden">
-        <div className="flex justify-between mx-16" ref={wrapperRef}>
+        <div className="flex justify-between mx-16" >
           <div className="flex w-2/6 justify-around">
             <h6 className="text-slate-500">Filter</h6>
             <div>
@@ -779,7 +779,7 @@ export default function Shop() {
                   <div className="md:block hidden">
                     <div className="group-hover:hidden">
                       <img
-                        src={product?.images[0]}
+                        src={product?.images[0].data}
                         alt={defaultImage}
                         className="w-full h-full object-contain"
                       />
@@ -820,18 +820,18 @@ export default function Shop() {
                         </div>
                         {product?.images?.map((image, key) => (
                           <div key={key}>
-                            {image.includes("image") ? (
+                            {image.fileType.includes("image") ? (
                               <SwiperSlide>
                                 <img
-                                  src={product.images[key] || defaultImage}
+                                  src={product.images[key].data || defaultImage}
                                   alt={key.toString()}
                                   className="w-full h-full object-cover"
                                 />
                               </SwiperSlide>
-                            ) : image.includes("video") ? (
+                            ) : image.fileType.includes("video") ? (
                               <SwiperSlide>
                                 <video
-                                  src={product.images[key]}
+                                  src={product.images[key].data}
                                   autoPlay
                                   loop
                                   muted
@@ -885,7 +885,7 @@ export default function Shop() {
                       </div>
                       {product?.images?.map((image, key) => (
                         <div key={key}>
-                          {image.includes("image") ? (
+                          {image.fileType.includes("image") ? (
                             <SwiperSlide>
                               <img
                                 src={product.images[key] || defaultImage}
@@ -893,7 +893,7 @@ export default function Shop() {
                                 className="w-full h-full object-cover"
                               />
                             </SwiperSlide>
-                          ) : image.includes("video") ? (
+                          ) : image.fileType.includes("video") ? (
                             <></>
                           ) : (
                             <SwiperSlide>
@@ -922,29 +922,6 @@ export default function Shop() {
               <Loader />
             )}
           </div>
-
-          {/* <Slider {...settings}>
-            <div className="flex justify-center mt-2">
-              {productImages?.map((image, index) => (
-                <div className="rounded-lg">
-              <Link to="/" className="no-underline group flex justify-center">
-                <div>
-                  <div className="flex justify-center">
-                    <img src={image} alt="productimage" />
-                  </div>
-                  <p className="text-center py-4 text-[17px] font-semibold group-hover:text-main-blue no-underline text-gray-700">
-                    ABC
-                  </p>
-                </div>
-              </Link>
-            </div>
-              ))}
-            </div>
-          </Slider>
-
-          <div className="text-center mt-2">
-            <h3 className="text-lg font-medium">Kings Pride</h3>
-          </div> */}
         </div>
       </div>
       {/* <Loader /> */}

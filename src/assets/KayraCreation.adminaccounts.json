@@ -1,0 +1,19 @@
+[{
+  "_id": {
+    "$oid": "6594f16058a29b43fd428498"
+  },
+  "ID": "A123456",
+  "name": "John Jonny John",
+  "username": "john_doe",
+  "password": "$2a$10$yfILGt87IaL5HnzvTksLnOBuXLnpXJz9xYNTLxpUfvxNup56WdHDK",
+  "role": "manager",
+  "photo": "https://example.com/john_jonny_joe.jpg",
+  "active": true,
+  "createdAt": {
+    "$date": "2024-01-03T05:32:16.104Z"
+  },
+  "updatedAt": {
+    "$date": "2024-01-10T03:52:27.440Z"
+  },
+  "__v": 0
+}]
