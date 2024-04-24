@@ -1,57 +1,14 @@
 const { v4: uuidv4 } = require("uuid");
-const multer = require('multer');
-const AWS = require('aws-sdk');
 
 const {
   PutObjectCommand,
   S3Client,
-  GetObjectCommand,
 } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
-const { Upload } = require("@aws-sdk/lib-storage");
-const upload = multer({dest: 'upload/'})
-
-const s3 = new AWS.S3();
-// const { fileType } = require("file-type");
 
 const Ring = require("../model/ringData");
 
-const uploadMediaToS3 = async (req, res) => {
-  try {
-    // Use the multer middleware to handle the file upload
-    await upload.single('file')(req, res, async (err) => {
-      if (err) {
-        console.error(err);
-        return res.status(400).send('Error uploading file.');
-      }
-
-      // Check if a file was uploaded
-      if (!req.file) {
-        return res.status(400).send('No file uploaded.');
-      }
-
-      // Read the file from the temporary directory
-      const fileContent = req.file.buffer;
-
-      // Set up S3 upload parameters
-      const params = {
-        Bucket: 'YOUR_BUCKET_NAME', // Replace with your bucket name
-        Key: req.file.originalname, // Use the original file name as the key
-        Body: fileContent,
-      };
-
-      // Upload the file to S3
-      const data = await s3.upload(params).promise();
-
-      // Return the uploaded file's location
-      res.send(`File uploaded successfully. Location: ${data.Location}`);
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('An error occurred while uploading the file.');
-  }
-};
 
 const generateUploadURL = async (req, res) => {
   try {
@@ -99,6 +56,8 @@ const addRing = async (req, res) => {
       productNo,
       active,
       productType,
+      designNo,
+      jobNo,
     } = req.body;
 
     const newRing = new Ring({
@@ -118,6 +77,8 @@ const addRing = async (req, res) => {
       productNo,
       active,
       productType,
+      designNo,
+      jobNo,
     });
 
     await newRing.save();
@@ -177,8 +138,8 @@ const deleteRingById = async (req, res) => {
 
 const updateRingByProductNo = async (req, res) => {
   try {
-    const { productNo } = req.params; // Assuming productNo is part of the URL parameters
-    const updatedData = req.body; // Assuming updated data is sent in the request body
+    const { productNo } = req.params;
+    const updatedData = req.body;
 
     // Ensure productNo is not changed in the update data
     delete updatedData.productNo;
@@ -186,7 +147,7 @@ const updateRingByProductNo = async (req, res) => {
     const result = await Ring.findOneAndUpdate(
       { productNo: parseInt(productNo, 10) },
       updatedData,
-      { new: true } // Return the updated document
+      { new: true }
     );
 
     if (result) {
@@ -270,6 +231,32 @@ const getRingByProductNo = async (req, res) => {
   }
 };
 
+const isProductNumberTaken = async (req, res) => {
+  try {
+    const { productNo } = req.body;
+
+    // Check if the product number is provided in the request body
+    if (!productNo) {
+      return res.status(400).json({ error: "Product number is required." });
+    }
+
+    // Find a ring with the provided product number
+    const existingRing = await Ring.findOne({ productNo: productNo });
+
+    if (existingRing) {
+      console.log(`product Number ${productNo} is taken`)
+      // If a ring with the provided product number exists, it is taken
+      res.status(200).json({ taken: true });
+    } else {
+      // If no ring with the provided product number is found, it is available
+      res.status(200).json({ taken: false });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   generateUploadURL,
   addRing,
@@ -281,4 +268,5 @@ module.exports = {
   findRingByActive,
   updateRingField,
   getRingByProductNo,
+  isProductNumberTaken
 };

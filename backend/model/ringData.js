@@ -65,6 +65,14 @@ const ringSchema = new mongoose.Schema(
       type: Boolean,
       require: true,
     },
+    designNo: {
+      type: String,
+      require: true,
+    },
+    jobNo: {
+      type: String,
+      require: true,
+    },
   },
   {
     timestamps: true,

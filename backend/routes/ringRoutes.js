@@ -12,7 +12,8 @@ const {
   findRingByActive,
   updateRingField,
   generateUploadURL,
-  getRingByProductNo
+  getRingByProductNo,
+  isProductNumberTaken
 } = require("../controller/ringController");
 
 router.use(bodyparser.json());
@@ -44,6 +45,9 @@ router.get("/getactive", findRingByActive);
 router.post("/updatefield", updateRingField);
 
 router.post("/uploadurl", generateUploadURL);
+
+// Route to check if product number already exists.
+router.post("/checkproductno", isProductNumberTaken)
 
 
 module.exports = router;

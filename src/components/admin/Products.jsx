@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IoMdClose } from "react-icons/io";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -32,6 +32,7 @@ const AdminProductsPage = () => {
   const [isFilterBoxOpen, setIsFilterBoxOpen] = useState(false);
   const [addNew, setAddNew] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState(false);
+  const [productNoIsTaken, setProductNoIsTaken] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage] = useState(10);
@@ -111,6 +112,8 @@ const AdminProductsPage = () => {
     descriptionDetails: "",
     active: true,
     productType: "",
+    designNo: "",
+    jobNo: "",
     images: [],
   };
 
@@ -481,9 +484,11 @@ const AdminProductsPage = () => {
     netWeight: "Net Weight",
     priceUSD: "Price (USD)",
     productType: "Product Type",
+    designNo: "Design Number",
+    jobNo: "Job Number",
   };
 
-  const [editableFields, setEditableFields] = useState({
+  const editableFieldsInitialState = {
     name: false,
     priceUSD: false,
     caratWt: false,
@@ -496,25 +501,20 @@ const AdminProductsPage = () => {
     active: false,
     descriptionDetails: false,
     netWeight: false,
+    designNo: false,
+    jobNo: false,
     images: false,
-  });
+  };
+  const [editableFields, setEditableFields] = useState(
+    editableFieldsInitialState
+  );
 
   const handleEdit = (field) => {
     setEditableFields({ ...editableFields, [field]: true });
   };
 
   const handleCancelEdit = () => {
-    setEditableFields({
-      name: false,
-      price: false,
-      caraWt: false,
-      colorRange: false,
-      metalColor: false,
-      goldPurity: false,
-      category: false,
-      netWEight: false,
-      images: false,
-    });
+    setEditableFields(editableFieldsInitialState);
   };
 
   const handleSave = () => {
@@ -611,7 +611,7 @@ const AdminProductsPage = () => {
     let isValid = true;
 
     switch (field) {
-      case "productNumber":
+      case "productNo":
       case "name":
       case "productType":
       case "category":
@@ -621,6 +621,8 @@ const AdminProductsPage = () => {
       case "netWeight":
       case "goldPurity":
       case "descriptionDetails":
+      case "designNo":
+      case "jobNo":
         isValid = !validator.isEmpty(value);
         break;
       case "caratWt":
@@ -633,8 +635,12 @@ const AdminProductsPage = () => {
       default:
         isValid = true;
     }
+    if (productNoIsTaken){
+      setValidationErrors({ ...validationErrors, "productNo": true });
+      return !isValid
+    }
 
-    console.log(field);
+    console.log(field, value);
     if (!isValid) {
       setValidationErrors({ ...validationErrors, [field]: true });
     } else {
@@ -656,6 +662,53 @@ const AdminProductsPage = () => {
     setMinCarat("");
     setMaxCarat("");
     setAppliedFilters(false);
+  };
+
+  const debounce = (func, delay) => {
+    let timeoutId;
+    return (...args) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        func(...args);
+      }, delay);
+    };
+  };
+
+  const checkProductNumber = async (productNo) => {
+    try {
+      const response = await axios.post(`${serverApi}rings/checkproductno`, { productNo });
+      
+      
+      if (response.data.taken) {
+        setProductNoIsTaken(response.data.taken);
+        const toastId = toast.loading("Product Number already exists.");
+        validateField("productNo", "")
+        toast.update(toastId, {
+          render: `Product Number ${productNo} already exists.`,
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+        });
+      }
+      else{
+        setProductNoIsTaken(response.data.taken);
+        validateField("productNo", "")
+      }
+
+    } catch (error) {
+      console.error('Error checking product number:', error);
+    }
+  };
+
+  const debouncedCheckProductNumber = useCallback(debounce(checkProductNumber, 300), []);
+
+  const handleProductNoChange = (event) => {
+    const value = event.target.value;
+    setNewProduct((prevProduct) => ({
+      ...prevProduct,
+      productNo: value,
+    }));
+    debouncedCheckProductNumber(value);
   };
 
   return (
@@ -1258,6 +1311,8 @@ const AdminProductsPage = () => {
                     "descriptionDetails",
                     "netWeight",
                     "priceUSD",
+                    "designNo",
+                    "jobNo",
                   ].includes(field)
                 )
                 .map((field) => (
@@ -1367,6 +1422,8 @@ const AdminProductsPage = () => {
                       "descriptionDetails",
                       "netWeight",
                       "priceUSD",
+                      "designNo",
+                      "jobNo",
                     ].includes(field)
                   )
                   .map((field) => (
@@ -1374,7 +1431,23 @@ const AdminProductsPage = () => {
                       <label className="block font-semibold">
                         {fieldTagNames[field]}:
                       </label>
-                      {field === "productType" ? (
+                      {field === "productNo" ? (
+                        <div>
+                          <input
+                            type="text"
+                            value={newProduct[field]}
+                            onChange={(e) => {
+
+                              handleProductNoChange(e);
+                            }}
+                            className={`w-full p-1 border-[1px] rounded-lg ${
+                              validationErrors[field]
+                                ? "border-red-500"
+                                : "border-gray-300"
+                            }`}
+                          />
+                        </div>
+                      ) : field === "productType" ? (
                         <div>
                           <input
                             type="text"
