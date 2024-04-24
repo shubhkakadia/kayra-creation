@@ -8,7 +8,7 @@ export const getallproducts = (product) => (dispatch) => {
   let config = {
     method: "get",
     maxBodyLength: Infinity,
-    url: `http://127.0.0.1:5000/${product}/getall`,
+    url: `${process.env.REACT_APP_API_URL}${product}/getall`,
     headers: {},
   };
 

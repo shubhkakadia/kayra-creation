@@ -50,14 +50,6 @@ const AdminProductsPage = () => {
   const [selectedClarity, setSelectedClarity] = useState([]);
   const [selectedGoldPurity, setSelectedGoldPurity] = useState([]);
 
-  const client = new S3Client({
-    region: "us-east-1",
-    credentials: {
-      accessKeyId: "AKIARBH5IBNXRRSC72UK",
-      secretAccessKey: "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",
-    },
-  });
-
   const generatePreSignedURL = async (fileName, contentType) => {
     try {
       const data = JSON.stringify({
@@ -67,7 +59,7 @@ const AdminProductsPage = () => {
       const config = {
         method: "post",
         maxBodyLength: Infinity,
-        url: "http://localhost:5000/rings/uploadurl",
+        url: `${process.env.REACT_APP_API_URL}rings/uploadurl`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -82,63 +74,14 @@ const AdminProductsPage = () => {
     }
   };
 
-  const put = async (contentType) => {
-    const command = new PutObjectCommand({
-      Bucket: "kayra-creation-products",
-      Key: `products/${temp_image}`,
-      ContentType: contentType,
-
-      // Body: "Hello S3!",
-    });
-
-    console.log(command, client);
-
-    const url = await getSignedUrl(client, command);
-
-    console.log("url for uploading: ", await url);
-
-    // try {
-    //   const response = await client.send(command);
-    //   console.log(response);
-    //   console.log("sent")
-    // } catch (err) {
-    //   console.error(err);
-    // }
-
-    return url;
-  };
-
-  const get = async () => {
-    const command = new GetObjectCommand({
-      Bucket: "kayra-creation-products",
-      Key: "tiffany-infinitynarrow-band-ring-31043689_1019256_ED_M.webp",
-      // Body: "Hello S3!",
-    });
-
-    const url = await getSignedUrl(client, command);
-    console.log("url", await url);
-
-    // console.log("command", client.send(command))
-    // try {
-    //   const getObjectResult = await client.send(command);
-    //   console.log("sent")
-    //   console.log(getObjectResult);
-    //   const bodyStream = getObjectResult.Body;
-    //   const bodyAsString = await bodyStream.transformToString();
-    //   console.log(bodyAsString);
-    // } catch (err) {
-    //   console.error(err);
-    // }
-    return url;
-  };
-
-  useEffect(() => {
-    // get();
-    // put("image/jpg");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // const productTypeList = ["Necklaces", "Pendants", "Bracelets", "Earrings", "Rings", "Charms", "Men's Jewellery"];
+  const productTypeList = [
+    "Necklace",
+    "Pendant",
+    "Bracelet",
+    "Earring",
+    "Ring",
+    "Men's Jewellery",
+  ];
   // const clarityRangeList = ["FL", "IF", "VVS1", "VVS2", "VS1", "VS2", "SI1", "SI2", "I1", "I2", "I3"];
   // const colorRangeList = ["D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
 
@@ -183,7 +126,7 @@ const AdminProductsPage = () => {
     let config = {
       method: "get",
       maxBodyLength: Infinity,
-      url: `http://127.0.0.1:5000/${product}/getall`,
+      url: `${process.env.REACT_APP_API_URL}${product}/getall`,
       headers: {},
     };
 
@@ -590,7 +533,7 @@ const AdminProductsPage = () => {
   const handleImageUpload = async (index, product, file) => {
     const presignedurl = await generatePreSignedURL(file.name, file.type);
     const object_url = await uploadMediaS3(file, presignedurl);
-    
+
     if (product === "update") {
       if (file) {
         const newImages = [...selectProduct.images];
@@ -731,7 +674,7 @@ const AdminProductsPage = () => {
             className="border p-2 rounded-md focus:outline-none cursor-pointer"
           >
             <option value="">All</option>
-            {productTypes.map((type, index) => (
+            {productTypeList.map((type, index) => (
               <option key={index} value={type}>
                 {type.charAt(0).toUpperCase() + type.slice(1)}
               </option>
@@ -1197,8 +1140,8 @@ const AdminProductsPage = () => {
                 (_, index) => (
                   <div key={index} className="relative group">
                     {selectProduct?.images[index]?.fileType?.includes(
-                        "image"
-                      ) ? (
+                      "image"
+                    ) ? (
                       <img
                         src={selectProduct.images[index].data}
                         alt={`Media ${index + 1}`}
@@ -1389,132 +1332,89 @@ const AdminProductsPage = () => {
       {/* Add New Product */}
       {addNew && (
         <div className="z-10 fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-[900px] h-[600px] bg-white shadow-lg rounded-md p-6 flex">
-            {/* Images section - can be modified as per requirement for new product */}
-            <div className="flex-1 mr-4 grid grid-cols-2 gap-2 overflow-auto ">
-              {Array.from({ length: newProduct?.images?.length })?.map(
-                (_, index) => (
-                  <div key={index} className="relative group">
-                    {newProduct?.images[index]?.fileType?.includes("video") ? (
-                      <video
-                        src={newProduct.images[index].data}
-                        className="w-full h-full object-contain rounded-md"
-                        controls
-                        autoPlay
-                      />
-                    ) : newProduct?.images[index]?.fileType?.includes(
-                        "image"
-                      ) ? (
-                      <img
-                        src={newProduct.images[index].data}
-                        alt={`${defaultImage}`}
-                        className="w-full h-full object-contain rounded-md"
-                      />
-                    ) : (
-                      <img
-                        src={defaultImage}
-                        alt={`${defaultImage}`}
-                        className="w-full h-full object-contain rounded-md"
-                      />
-                    )}
-
-                    <label
-                      htmlFor={`file-input-${index}`}
-                      className="absolute inset-0 w-full h-full items-center rounded-md justify-center bg-black bg-opacity-50 cursor-pointer hidden group-hover:flex"
-                    >
-                      <span className="text-white">Upload Media</span>
-                    </label>
-
-                    {newProduct?.images?.length > 1 && (
-                      <button
-                        onClick={() => {
-                          setNewProduct({
-                            ...newProduct,
-                            images: newProduct.images.filter(
-                              (_, imgIndex) => imgIndex !== index
-                            ),
-                          });
-                        }}
-                        className="w-[60px] absolute top-0 right-0 m-2 text-white bg-red-600 hover:bg-red-700 rounded-lg p-1 hidden group-hover:block"
-                      >
-                        Delete
-                      </button>
-                    )}
-
-                    <input
-                      id={`file-input-${index}`}
-                      type="file"
-                      onChange={(e) => {
-                        handleImageUpload(index, "new", e.target.files[0]);
-                        handleEdit("images");
-                      }}
-                      className="hidden"
-                    />
-                  </div>
-                )
-              )}
-              {newProduct?.images?.length < 6 && (
-                <div className="flex justify-center">
-                  <button
-                    onClick={() =>
-                      setNewProduct((prevState) => ({
-                        ...prevState,
-                        images: [...prevState.images, ""],
-                      }))
-                    }
-                    className="bg-blue-500 text-white px-4 rounded focus:outline-none h-[50px]"
-                  >
-                    Add Media
-                  </button>
-                </div>
-              )}
-            </div>
-
+          <div className="w-[900px] h-[600px] bg-white shadow-lg rounded-md flex flex-col">
             {/* Product details section */}
-            <div className="flex flex-col h-full">
-              {/* Fixed Header */}
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold">Add New Product</h2>
-                <button
-                  onClick={() => {
-                    setAddNew(false);
-                    handleCancelEdit();
-                  }}
-                  className="text-gray-500 hover:text-red-500 focus:outline-none"
-                >
-                  <IoMdClose size={25} />
-                </button>
-              </div>
-
-              {/* Scrollable Content */}
-              <div className="flex-1 overflow-auto">
-                <div>
-                  {/* Product fields */}
-                  {Object.keys(newProduct)
-                    .filter((field) =>
-                      [
-                        "productNo",
-                        "name",
-                        "productType",
-                        "caratWt",
-                        "colorRange",
-                        "clarityRange",
-                        "metalColor",
-                        "netWEight",
-                        "goldPurity",
-                        "price",
-                        "category",
-                        "dateAdded",
-                        "descriptionDetails",
-                        "netWeight",
-                        "priceUSD",
-                      ].includes(field)
-                    )
-                    .map((field) => (
-                      <div key={field} className="mb-2">
-                        <p className="inline font-semibold">
-                          {fieldTagNames[field]}:
-                        </p>
+            <div className="flex justify-between items-center sticky top-0 bg-white m-6">
+              <h2 className="text-xl font-bold">Add New Product</h2>
+              <button
+                onClick={() => {
+                  setAddNew(false);
+                  handleCancelEdit();
+                }}
+                className="text-gray-500 hover:text-red-500 focus:outline-none"
+              >
+                <IoMdClose size={25} />
+              </button>
+            </div>
+            <div className="flex-grow mx-6 overflow-auto">
+              <div className="grid grid-cols-4 gap-3">
+                {/* Product fields */}
+                {Object.keys(newProduct)
+                  .filter((field) =>
+                    [
+                      "productNo",
+                      "name",
+                      "productType",
+                      "caratWt",
+                      "colorRange",
+                      "clarityRange",
+                      "metalColor",
+                      "netWEight",
+                      "goldPurity",
+                      "price",
+                      "category",
+                      "dateAdded",
+                      "descriptionDetails",
+                      "netWeight",
+                      "priceUSD",
+                    ].includes(field)
+                  )
+                  .map((field) => (
+                    <div key={field} className="mb-2">
+                      <label className="block font-semibold">
+                        {fieldTagNames[field]}:
+                      </label>
+                      {field === "productType" ? (
+                        <div>
+                          <input
+                            type="text"
+                            value={newProduct[field]}
+                            onChange={(e) =>
+                              setNewProduct({
+                                ...newProduct,
+                                [field]: e.target.value,
+                              })
+                            }
+                            className={`w-full p-1 border-[1px] rounded-lg ${
+                              validationErrors[field]
+                                ? "border-red-500"
+                                : "border-gray-300"
+                            }`}
+                            list="productTypeOptions"
+                          />
+                          <datalist id="productTypeOptions">
+                            {productTypeList.map((type) => (
+                              <option key={type} value={type} />
+                            ))}
+                          </datalist>
+                        </div>
+                      ) : field === "descriptionDetails" ? (
+                        <textarea
+                          type="text"
+                          value={newProduct[field]}
+                          onChange={(e) =>
+                            setNewProduct({
+                              ...newProduct,
+                              [field]: e.target.value,
+                            })
+                          }
+                          className={`w-full p-1 border-[1px] rounded-lg ${
+                            validationErrors[field]
+                              ? "border-red-500"
+                              : "border-gray-300"
+                          }`}
+                        />
+                      ) : (
                         <input
                           type={
                             field === "dateAdded" ? "datetime-local" : "text"
@@ -1526,26 +1426,106 @@ const AdminProductsPage = () => {
                               [field]: e.target.value,
                             })
                           }
-                          className={`ml-2 p-1 border-[1px] rounded-lg   ${
+                          className={`w-full p-1 border-[1px] rounded-lg ${
                             validationErrors[field]
                               ? "border-red-500"
                               : "border-gray-300"
                           }`}
                         />
-                      </div>
-                    ))}
+                      )}
+                    </div>
+                  ))}
+              </div>
+            </div>
 
-                  {/* Save and Cancel buttons */}
-                  <div className="mt-4">
+            {/* Images section */}
+            <div className="h-[45%] bg-gray-100 mt-2 p-4">
+              <h3 className="text-lg font-semibold mb-2">Media Upload</h3>
+              <div className="grid grid-cols-6 gap-2">
+                {Array.from({ length: newProduct?.images?.length })?.map(
+                  (_, index) => (
+                    <div key={index} className="relative group">
+                      {newProduct?.images[index]?.fileType?.includes(
+                        "video"
+                      ) ? (
+                        <video
+                          src={newProduct.images[index].data}
+                          className="w-full h-full object-cover rounded-md"
+                          controls
+                          autoPlay
+                        />
+                      ) : newProduct?.images[index]?.fileType?.includes(
+                          "image"
+                        ) ? (
+                        <img
+                          src={newProduct.images[index].data}
+                          alt={`${defaultImage}`}
+                          className="w-full h-full object-cover rounded-md"
+                        />
+                      ) : (
+                        <img
+                          src={defaultImage}
+                          alt={`${defaultImage}`}
+                          className="w-full h-full object-cover rounded-md"
+                        />
+                      )}
+                      <label
+                        htmlFor={`file-input-${index}`}
+                        className="absolute inset-0 w-full h-full items-center rounded-md justify-center bg-black bg-opacity-50 cursor-pointer hidden group-hover:flex"
+                      >
+                        <span className="text-white">Upload Media</span>
+                      </label>
+                      {newProduct?.images?.length > 1 && (
+                        <button
+                          onClick={() => {
+                            setNewProduct({
+                              ...newProduct,
+                              images: newProduct.images.filter(
+                                (_, imgIndex) => imgIndex !== index
+                              ),
+                            });
+                          }}
+                          className="w-[60px] absolute top-0 right-0 m-2 text-white bg-red-600 hover:bg-red-700 rounded-lg p-1 hidden group-hover:block"
+                        >
+                          Delete
+                        </button>
+                      )}
+                      <input
+                        id={`file-input-${index}`}
+                        type="file"
+                        onChange={(e) => {
+                          handleImageUpload(index, "new", e.target.files[0]);
+                          handleEdit("images");
+                        }}
+                        className="hidden"
+                      />
+                    </div>
+                  )
+                )}
+                {newProduct?.images?.length < 6 && (
+                  <div className="flex justify-center items-center bg-green-500 text-white text-4xl font-bold cursor-pointer rounded-md">
                     <button
-                      onClick={() => handleSaveNewProduct()}
-                      className="bg-blue-500 text-white px-4 py-2 rounded-full mr-2"
+                      onClick={() =>
+                        setNewProduct((prevState) => ({
+                          ...prevState,
+                          images: [...prevState.images, ""],
+                        }))
+                      }
+                      className="w-full h-full flex items-center justify-center"
                     >
-                      Save
+                      +
                     </button>
                   </div>
-                </div>
+                )}
               </div>
+            </div>
+            <div className="my-2 flex justify-center">
+              <button
+                onClick={() => handleSaveNewProduct()}
+                className="bg-blue-500 text-white px-6 py-2 rounded-full"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>

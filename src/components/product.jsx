@@ -4,7 +4,13 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router";
 import Loader from "./Loader";
 import ProductNotFound from "./ProductNotFound";
-import { FaAngleDown, FaAngleUp } from "react-icons/fa";
+import {
+  FaAngleDown,
+  FaAngleUp,
+  FaWhatsapp,
+  FaWeixin,
+  FaEnvelope,
+} from "react-icons/fa";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 
 export default function Product() {
@@ -21,12 +27,14 @@ export default function Product() {
   const [isQuantityDropdownOpen, setIsQuantityDropdownOpen] = useState(false);
 
   const [selectedSize, setSelectedSize] = useState("");
-  const [isRingSizeDorwpdownOpen, setIsRingSizeDorwpdownOpen] = useState(false);
-
+  const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
+  const [consultOption, setConsultOption] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const handleLike = () => {
     setIsLiked(!isLiked);
   };
+
+  const [selectedImage, setSelectedImage] = useState({});
 
   const ringSizes = [
     { size: "3", diameter: 14.05, circumference: 44.14 },
@@ -51,6 +59,30 @@ export default function Product() {
     { size: "12 1/2", diameter: 21.79, circumference: 68.5 },
     { size: "13", diameter: 22.2, circumference: 69.7 },
     { size: "13 1/2", diameter: 22.61, circumference: 71.0 },
+  ];
+
+  const necklaceLengths = [
+    { inch: 16, cm: 40.64 },
+    { inch: 17, cm: 43.18 },
+    { inch: 18, cm: 45.72 },
+    { inch: 19, cm: 48.26 },
+    { inch: 20, cm: 50.8 },
+    { inch: 21, cm: 53.34 },
+    { inch: 22, cm: 55.88 },
+    { inch: 23, cm: 58.42 },
+    { inch: 24, cm: 60.96 },
+  ];
+
+  const braceletSizes = [
+    { inch: 5.5, mm: 139.7 },
+    { inch: 6.0, mm: 152.4 },
+    { inch: 6.5, mm: 165.1 },
+    { inch: 7.0, mm: 177.8 },
+    { inch: 7.5, mm: 190.5 },
+    { inch: 8.0, mm: 203.2 },
+    { inch: 8.5, mm: 215.9 },
+    { inch: 9.0, mm: 228.6 },
+    { inch: 9.5, mm: 241.3 },
   ];
 
   useEffect(() => {
@@ -92,19 +124,32 @@ export default function Product() {
 
   const handleRingSelection = (quantity) => {
     setSelectedSize(quantity); // Assuming onSelectQuantity updates the state in the parent component
-    setIsRingSizeDorwpdownOpen(false); // Close dropdown after selection
+    setIsSizeDropdownOpen(false); // Close dropdown after selection
   };
 
-  const [selectedImage, setSelectedImage] = useState({});
-
   console.log(selectedProduct);
+
+  const getSizeData = (productType) => {
+    switch (productType.toLowerCase()) {
+      case "ring":
+        return ringSizes;
+      case "bracelet":
+      case "bangle":
+        return braceletSizes;
+      case "necklace":
+      case "pendant":
+        return necklaceLengths;
+      default:
+        return [];
+    }
+  };
 
   return (
     <div>
       {selectedProduct.load ? (
         <Loader />
       ) : Object.keys(selectedProduct.success).length > 0 ? (
-        <div className="flex flex-col lg:flex-row w-full">
+        <div className="flex flex-col lg:flex-row">
           <div className="lg:w-3/5 w-full container hidden lg:block">
             <div className="grid grid-cols-2 gap-2 mx-8 my-4">
               {selectedProduct.success.images.map((image, index) => (
@@ -123,7 +168,7 @@ export default function Product() {
               {/* Main selected image */}
               <div className="w-1/2 h-auto mb-4">
                 <img
-                  src={selectedImage}
+                  src={selectedImage.data}
                   alt="Selected"
                   className="w-full h-full object-contain"
                 />
@@ -141,7 +186,7 @@ export default function Product() {
                       className="w-full h-full"
                     >
                       <img
-                        src={image}
+                        src={image.data}
                         alt={`Thumbnail ${index + 1}`}
                         className="w-full h-full object-cover hover:opacity-75"
                       />
@@ -152,141 +197,185 @@ export default function Product() {
             </div>
           </div>
 
-          <div className="lg:w-2/5 w-full flex-col flex my-20 items-center mx-2">
-          <div className="flex-col flex gap-3">
-          <div className="flex flex-col gap-2">
-              <div className="flex justify-between">
-                <span className="font-quicksand text-[22px] font-bold text-gray-600">
-                  {selectedProduct.success.name}
-                </span>
-                <div className="mx-2">
-                  <button onClick={() => handleLike()}>
-                    {isLiked ? (
-                      <AiFillHeart size={22} className="text-main-blue" />
-                    ) : (
-                      <AiOutlineHeart size={22} className="text-main-blue" />
-                    )}
-                  </button>
+          <div className="lg:w-2/5 w-full flex-col flex my-20 items-center">
+            <div className="flex-col flex gap-2 w-4/5">
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between">
+                  <span className="font-quicksand text-[22px] font-bold text-gray-600">
+                    {selectedProduct.success.name}
+                  </span>
+                  <div className="mx-2">
+                    <button onClick={() => handleLike()}>
+                      {isLiked ? (
+                        <AiFillHeart size={22} className="text-main-blue" />
+                      ) : (
+                        <AiOutlineHeart size={22} className="text-main-blue" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <span className="font-raleway text-[17px] font-semibold text-gray-600">
+                    Description and Details
+                  </span>
+                  <p className="font-raleway text-[13px] text-gray-400">
+                    {selectedProduct.success.descriptionDetails}
+                  </p>
                 </div>
               </div>
-              <div>
-                <span className="font-raleway text-[17px] font-semibold text-gray-600">
-                  Description and Details
-                </span>
-                <p className="font-raleway text-[13px] text-gray-400">
-                  {selectedProduct.success.descriptionDetails}
-                </p>
-              </div>
-            </div>
 
-            <div className="flex flex-col gap-2">
-              <div>
+              <div className="flex flex-col gap-2">
+                {/* Quantity Dropdown */}
                 <div className="relative inline-block text-left">
-                  <div>
-                    <div
+                  <div className="flex items-center justify-between">
+                    <h6 className="text-gray-600 font-raleway">Quantity</h6>
+                    <button
                       type="button"
-                      className="flex cursor-pointer items-center w-[400px] justify-between text-gray-600 font-raleway"
+                      className="flex items-center gap-2 text-gray-600 font-raleway focus:outline-none"
                       onClick={() =>
                         setIsQuantityDropdownOpen(!isQuantityDropdownOpen)
                       }
                     >
-                      <h6>Quantity </h6>
-                      <h6 className="flex items-center gap-2">
-                        {selectedQuantity || "Select"}
-                        {isQuantityDropdownOpen ? (
-                          <FaAngleUp />
-                        ) : (
-                          <FaAngleDown />
-                        )}
-                      </h6>
-                    </div>
+                      {selectedQuantity || "Select"}
+                      {isQuantityDropdownOpen ? <FaAngleUp /> : <FaAngleDown />}
+                    </button>
                   </div>
                   {isQuantityDropdownOpen && (
-                    <div className="absolute z-10 w-[100px] ml-[20rem] rounded-lg bg-white shadow-lg border border-gray-200">
-                      {[...Array(6).keys()].map((quantity) => (
-                        <div
-                          key={quantity}
-                          className="justify-center py-2 flex items-center cursor-pointer hover:bg-gray-200 rounded-lg"
-                          onClick={() => handleQuantitySelection(quantity)}
-                        >
-                          <span
-                            className={`ml-2 text-sm ${
+                    <div className="absolute z-10 mt-2 w-full rounded-lg bg-white shadow-lg border border-gray-200">
+                      <div className="grid grid-cols-3 gap-2 p-2">
+                        {[...Array(6).keys()].map((quantity) => (
+                          <button
+                            key={quantity}
+                            className={`rounded-lg py-2 text-sm text-center cursor-pointer ${
                               selectedQuantity === quantity
-                                ? "text-purple-500"
-                                : "text-gray-700"
+                                ? "bg-purple-400 text-white"
+                                : "text-gray-700 hover:bg-gray-200"
                             }`}
+                            onClick={() => handleQuantitySelection(quantity)}
                           >
                             {quantity}
-                          </span>
-                        </div>
-                      ))}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
-              </div>
 
-              <div>
+                {/* Size Dropdown */}
                 <div className="relative inline-block text-left">
-                  <div>
-                    <div
+                  <div className="flex items-center justify-between">
+                    <h6 className="text-gray-600 font-raleway">Size</h6>
+                    <button
                       type="button"
-                      className="flex cursor-pointer items-center w-[400px] justify-between text-gray-600 font-raleway"
-                      onClick={() =>
-                        setIsRingSizeDorwpdownOpen(!isRingSizeDorwpdownOpen)
-                      }
+                      className="flex items-center gap-2 text-gray-600 font-raleway focus:outline-none"
+                      onClick={() => setIsSizeDropdownOpen(!isSizeDropdownOpen)}
                     >
-                      <h6>Size </h6>
-                      <h6 className="flex items-center gap-2">
-                        {selectedSize || "Select"}{" "}
-                        {isRingSizeDorwpdownOpen ? (
-                          <FaAngleUp />
-                        ) : (
-                          <FaAngleDown />
-                        )}
-                      </h6>
-                    </div>
+                      {selectedSize || "Select"}
+                      {isSizeDropdownOpen ? <FaAngleUp /> : <FaAngleDown />}
+                    </button>
                   </div>
-                  {isRingSizeDorwpdownOpen && (
-                    <div className="absolute w-[100px] z-10 ml-[20rem] rounded-lg bg-white shadow-lg border border-gray-200">
-                      {ringSizes.map((size) => (
-                        <div
-                          key={size}
-                          className="px-4 py-2 justify-center flex items-center cursor-pointer hover:bg-gray-200 rounded-lg"
-                          onClick={() => handleRingSelection(size.size)}
+                  {isSizeDropdownOpen && (
+                    <div className="absolute z-10 mt-2 w-full rounded-lg bg-white shadow-lg border border-gray-200">
+                      <div className="grid grid-cols-3 gap-2 p-2">
+                        {getSizeData(selectedProduct.success.productType).map(
+                          (size) => (
+                            <button
+                              key={size.size || size.inch}
+                              className={`rounded-lg py-2 text-sm text-center cursor-pointer ${
+                                selectedSize === (size.size || size.inch)
+                                  ? "bg-purple-500 text-white"
+                                  : "text-gray-700 hover:bg-gray-200"
+                              }`}
+                              onClick={() =>
+                                handleRingSelection(size.size || size.inch)
+                              }
+                            >
+                              {size.size || size.inch}
+                            </button>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex-col gap-2 flex ">
+                <div>
+                  <button className="font-raleway bg-gray-800 text-main-bg py-2 px-4 flex justify-between items-center w-full border-1 border-gray-800 hover:bg-main-blue transition ease-in-out duration-300">
+                    <span>${selectedProduct.success.priceUSD}</span>
+                    <span>Add to Bag</span>
+                  </button>
+                </div>
+                <div className="relative inline-block text-left w-full">
+                  <button
+                    className="font-quicksand text-gray-800 w-full py-2 px-4 border-1 border-gray-800 focus:outline-none"
+                    onClick={() => setConsultOption(!consultOption)}
+                  >
+                    <span>Consult Export</span>
+                  </button>
+
+                  {consultOption && (
+                    <div className="absolute mt-2 w-full rounded-lg bg-white shadow-lg border border-gray-200 z-[1]">
+                      <div className="lg:flex lg:justify-between p-2">
+                        <a
+                          href={`https://wa.me/+85252482000?text=${encodeURIComponent(
+                            `Hi, I am interested in the below product:
+          Name: ${selectedProduct.success.name}
+          Product Number: ${selectedProduct.success.productNo}
+          Price: ${selectedProduct.success.priceUSD} USD
+          ${selectedSize ? `Size: ${selectedSize}` : ""}
+          ${selectedQuantity ? `Quantity: ${selectedQuantity}` : ""}
+          Image: ${selectedProduct.success.images[0].data}`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center px-3 py-2 text-gray-800 hover:bg-gray-100 no-underline"
                         >
-                          <span
-                            className={`ml-2 text-sm ${
-                              selectedSize === size.size
-                                ? "text-purple-500"
-                                : "text-gray-700"
-                            }`}
-                          >
-                            {size.size}
-                          </span>
-                        </div>
-                      ))}
+                          <FaWhatsapp className="mr-2 text-green-500" />
+                          <span>WhatsApp</span>
+                        </a>
+                        <a
+                          href={`weixin://dl/chat?text=${encodeURIComponent(
+                            `Hi, I am interested in the below product:
+          Name: ${selectedProduct.success.name}
+          Product Number: ${selectedProduct.success.productNo}
+          Price: ${selectedProduct.success.priceUSD} USD
+          ${selectedSize ? `Size: ${selectedSize}` : ""}
+          ${selectedQuantity ? `Quantity: ${selectedQuantity}` : ""}
+          Image: ${selectedProduct.success.images[0].data}`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center px-3 py-2 text-gray-800 hover:bg-gray-100 no-underline"
+                        >
+                          <FaWeixin className="mr-2 text-green-500" />
+                          <span>WeChat</span>
+                        </a>
+                        <a
+                          href={`mailto:sales.usa@gmail.com?subject=Product%20Inquiry&body=${encodeURIComponent(
+                            `Hi, I am interested in the below product:
+          Name: ${selectedProduct.success.name}
+          Product Number: ${selectedProduct.success.productNo}
+          Price: ${selectedProduct.success.priceUSD} USD
+          ${selectedSize ? `Size: ${selectedSize}` : ""}
+          ${selectedQuantity ? `Quantity: ${selectedQuantity}` : ""}
+          Image: ${selectedProduct.success.images[0].data}
+          Please provide me with more information. Thank you.`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center px-3 py-2 text-gray-800 hover:bg-gray-100 no-underline"
+                        >
+                          <FaEnvelope className="mr-2 text-blue-500" />
+                          <span>Email</span>
+                        </a>
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
             </div>
-
-            <div className="flex-col gap-2 flex">
-              <div>
-                <button className="font-raleway bg-gray-800 text-main-bg py-2 px-4 flex justify-between items-center w-full border-1 border-gray-800 hover:bg-main-blue transition ease-in-out duration-300">
-                  <span>${selectedProduct.success.priceUSD}</span>
-                  <span>Add to Bag</span>
-                </button>
-              </div>
-              <div>
-                <button className="font-quicksand text-gray-800 py-2 px-4 w-full border-1 border-gray-800">
-                  <span>Consult Export</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-
           </div>
         </div>
       ) : (

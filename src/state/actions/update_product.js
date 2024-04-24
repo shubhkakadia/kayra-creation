@@ -8,7 +8,7 @@ export const updateProduct = (product, productObj) => (dispatch) => {
   let config = {
     method: "put",
     maxBodyLength: Infinity,
-    url: `http://127.0.0.1:5000/${product}/update/${productObj.productNo}`,
+    url: `${process.env.REACT_APP_API_URL}${product}/update/${productObj.productNo}`,
     headers: {
         "Content-Type": "application/json",
       },

@@ -2,6 +2,7 @@ const Admin = require("../model/admin");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+
 const addAdmin = async (req, res) => {
   try {
     // Extract data from the request body
@@ -41,7 +42,7 @@ const login = async (req, res) => {
 
     if (!admin) {
       // Admin not found
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ error: "Invalid credentials: Username" });
     }
 
     // Compare the provided password with the hashed password in the database
@@ -49,7 +50,7 @@ const login = async (req, res) => {
 
     if (!passwordMatch) {
       // Passwords do not match
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ error: "Invalid credentials: Password" });
     }
 
     // Check if the account is active
@@ -57,9 +58,8 @@ const login = async (req, res) => {
       // Account is not active
       return res.status(401).json({ error: "Account not active" });
     }
-
     // Generate a JWT token with a one-month expiration
-    const token = jwt.sign({ userId: admin._id }, "RANDOM-TOKEN", {
+    const token = jwt.sign({ userId: admin._id }, process.env.JWT_SECRET_KEY, {
       expiresIn: "30d",
     });
 

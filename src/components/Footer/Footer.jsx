@@ -166,7 +166,7 @@ export default function Footer() {
           </div>
         </div>
       </div>
-      <div className="flex justify-center">
+      {/* <div className="flex justify-center">
         <Select
           options={countries}
           components={{ Option: CustomOption }}
@@ -175,7 +175,7 @@ export default function Footer() {
           onChange={handleChange}
           className="cursor-pointer"
         />
-      </div>
+      </div> */}
       <div className="flex justify-center py-4 ">
         <FaCopyright size={30} className="text-gray-500" />
         <p className="text-gray-500 px-4">

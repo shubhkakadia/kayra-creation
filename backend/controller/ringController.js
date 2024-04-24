@@ -58,30 +58,20 @@ const generateUploadURL = async (req, res) => {
     const client = new S3Client({
       region: "us-east-1",
       credentials: {
-        accessKeyId: "AKIARBH5IBNXRRSC72UK",
-        secretAccessKey: "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",
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       },
     });
 
     const command = new PutObjectCommand({
       Bucket: "kayra-creation-products",
-      Key: `products/${req.body.filename}`,
+      Key: `products/rings/${req.body.filename}`,
       ContentType: req.body.contentType,
     });
-
-    console.log(command, client);
 
     const url = await getSignedUrl(client, command);
 
     console.log("url for uploading: ", await url);
-
-    // try {
-    //   const response = await client.send(command);
-    //   console.log(response);
-    //   console.log("sent")
-    // } catch (err) {
-    //   console.error(err);
-    // }
 
     res.status(200).send({ url: url });
   } catch (err) {
@@ -89,14 +79,6 @@ const generateUploadURL = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-// const client = new S3Client({
-//   region: "us-east-1",
-//   credentials: {
-//     accessKeyId: "AKIARBH5IBNXRRSC72UK",
-//     secretAccessKey: "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",
-//   },
-// });
 
 const addRing = async (req, res) => {
   try {
@@ -118,83 +100,6 @@ const addRing = async (req, res) => {
       active,
       productType,
     } = req.body;
-
-    // const client = new S3Client({
-    //   region: "us-east-1",
-    //   credentials: {
-    //     accessKeyId: "AKIARBH5IBNXRRSC72UK",
-    //     secretAccessKey: "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",
-    //   },
-    // });
-
-    // const uploadImage = async (imageBlob, imageName) => {
-    //   // const result = await fileType.fromBuffer(imageBlob);
-
-    //   const uploader = new Upload({
-    //     client: client, // Your S3 client
-    //     params: {
-    //       Bucket: "kayra-creation-products",
-    //       Key: imageName,
-    //       Body: imageBlob.data,
-    //     },
-    //   });
-
-    //   uploader.on("httpUploadProgress", (progress) => {
-    //     console.log(
-    //       `Upload progress: ${progress.loaded} of ${progress.total} bytes`
-    //     );
-    //   });
-
-    //   await uploader.done();
-
-    //   // const putCommand = new PutObjectCommand({
-    //   //   Bucket: "kayra-creation-products",
-    //   //   Key: imageName,
-    //   //   Body: imageBlob,
-    //   // });
-
-    //   // await client.send(putCommand);
-
-    //   const getCommand = new GetObjectCommand({
-    //     Bucket: "kayra-creation-products",
-    //     Key: imageName,
-    //   });
-
-    //   const url = await getSignedUrl(client, getCommand);
-    //   console.log("url", url);
-    //   return url;
-    // };
-
-    // // Iterate over images, upload them, and replace blob data with URL
-    // const uploadedImages = await Promise.all(
-    //   images.map((blob, index) =>
-    //     uploadImage(blob, `media-${req.body.productNo}-${uuidv4()}`)
-    //   )
-    // );
-
-    // const fileStream = Readable.from(req.body.media.buffer);
-
-    // const putCommand = new PutObjectCommand({
-    //   Bucket: "kayra-creation-products",
-    //   Key: `products/${req.body.media.originalname}`,
-    //   ContentType: req.file.type,
-    //   Body: fileStream,
-    // });
-
-    // const getCommand = new GetObjectCommand({
-    //   Bucket: "kayra-creation-products",
-    //   Key: `products/${req.body.media.originalname}`,
-    //   // Body: "Hello S3!",
-    // });
-
-    // try{
-    //   await client.send(putCommand)
-    //   console.log('File upload successfully');
-    //   const url = await getSignedUrl(client, getCommand)
-    //   console.log("url", await url);
-    // } catch(err) {
-    //   console.error(err);
-    // }
 
     const newRing = new Ring({
       id: uuidv4(),

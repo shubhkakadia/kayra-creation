@@ -5,6 +5,11 @@ require("./db/conn");
 const ringRoutes = require("./routes/ringRoutes")
 const adminRoutes = require("./routes/adminRoutes")
 const bodyparser = require("body-parser");
+const dotenv = require('dotenv');
+
+// Load environment variables from .env file
+dotenv.config();
+
 
 app.use(express.json({limit: '50mb'}))
 app.use(cors({

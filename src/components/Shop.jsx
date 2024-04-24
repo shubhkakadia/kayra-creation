@@ -359,6 +359,21 @@ export default function Shop() {
     maxPrice
   );
 
+  const swiperRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (swiperRef.current) {
+      swiperRef.current.slideTo(0); // Go to the first slide
+      swiperRef.current.autoplay.start(); // Start autoplay from the beginning
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (swiperRef.current) {
+      swiperRef.current.autoplay.stop(); // Stop autoplay when the mouse leaves
+    }
+  };
+  
   // Function to check if click is outside the dropdown
   // const handleClickOutside = (event) => {
   //   if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
@@ -413,7 +428,7 @@ export default function Shop() {
 
       {/* Filter and Sort */}
       <div className="md:block hidden">
-        <div className="flex justify-between mx-16" >
+        <div className="flex justify-between mx-16">
           <div className="flex w-2/6 justify-around">
             <h6 className="text-slate-500">Filter</h6>
             <div>
@@ -766,14 +781,6 @@ export default function Shop() {
                 <div
                   key={index}
                   className="md:w-[350px] md:h-[350px] w-[175px] h-[175px] cursor-pointer duration-200 md:hover:scale-105 group pb-[275px]"
-                  onClick={() => {
-                    // dispatch(setSelectedProduct(product));
-                    navigate(
-                      `/jewellery/${selected_shop.toLowerCase()}/${
-                        product.productNo
-                      }`
-                    );
-                  }}
                 >
                   {/* Web View */}
                   <div className="md:block hidden">
@@ -793,6 +800,7 @@ export default function Shop() {
                           A11y,
                           Autoplay,
                         ]}
+                        navigation
                         spaceBetween={50}
                         sliderPerView={1}
                         // onSlideChange={() => console.log("slide Change")}
@@ -826,16 +834,14 @@ export default function Shop() {
                                   src={product.images[key].data || defaultImage}
                                   alt={key.toString()}
                                   className="w-full h-full object-cover"
-                                />
-                              </SwiperSlide>
-                            ) : image.fileType.includes("video") ? (
-                              <SwiperSlide>
-                                <video
-                                  src={product.images[key].data}
-                                  autoPlay
-                                  loop
-                                  muted
-                                  className="w-full h-full object-contain"
+                                  onClick={() => {
+                                    // dispatch(setSelectedProduct(product));
+                                    navigate(
+                                      `/jewellery/${selected_shop.toLowerCase()}/${
+                                        product.productNo
+                                      }`
+                                    );
+                                  }}
                                 />
                               </SwiperSlide>
                             ) : (
@@ -888,7 +894,7 @@ export default function Shop() {
                           {image.fileType.includes("image") ? (
                             <SwiperSlide>
                               <img
-                                src={product.images[key] || defaultImage}
+                                src={product.images[key].data || defaultImage}
                                 alt={key.toString()}
                                 className="w-full h-full object-cover"
                               />
@@ -904,16 +910,15 @@ export default function Shop() {
                       ))}
                     </Swiper>
 
-                    <div>
-                      <p className="px-2 pt-1 text-slate-700">
+                    <div className="py-2">
+                      <p className="px-2 text-slate-700">
                         {product?.name?.length > 100
                           ? `${product?.name?.substring(0, 40)} ...`
                           : product?.name}
                       </p>
-
-                      <span className="px-2 text-slate-500">
+                      <p className="px-2 text-slate-500 -mt-1">
                         US$ {product?.priceUSD}
-                      </span>
+                      </p>
                     </div>
                   </div>
                 </div>
