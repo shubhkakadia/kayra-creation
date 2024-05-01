@@ -257,6 +257,68 @@ const isProductNumberTaken = async (req, res) => {
   }
 };
 
+const getProductByPage = async (req, res) => {
+  console.log("by", req.params);
+  try {
+    const {productType, page, startIndex, endIndex } = req.body;
+    // const productType = req.params; // Extract productType from the URL path
+
+    console.log("page", page);
+    console.log("startIndex", startIndex);
+    console.log("endIndex", endIndex);
+    console.log("productType", productType);
+
+    // Validate the required parameters
+    if (!page || !startIndex || !endIndex || !productType) {
+      return res.status(400).json({ error: "Missing required parameters." });
+    }
+
+    // Calculate the skip and limit values based on the start and end indexes
+    const skip = (page - 1) * 50 + startIndex;
+    const limit = endIndex - startIndex + 1;
+
+    // Find the products based on the product type, skip, and limit
+    const products = await Ring.find({ productType: productType })
+      .skip(skip)
+      .limit(limit);
+
+    if (products.length > 0) {
+      console.log(`Products found for page ${page}, startIndex ${startIndex}, endIndex ${endIndex}, and productType ${productType}`);
+      res.status(200).json(products);
+    } else {
+      res.status(404).json({ error: "No products found." });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const getProductByProductType = async (req, res) => {
+  try {
+    const productType = req.params.productType;
+
+
+    // Validate the required parameters
+    if ( !productType) {
+      return res.status(400).json({ error: "Missing required parameters." });
+    }
+
+    // Find the products based on the product type, skip, and limit
+    const products = await Ring.find({ productType: { $regex: new RegExp(`^${productType}$`, "i") } })
+
+    if (products.length > 0) {
+      console.log(`Products found for productType ${productType}`);
+      res.status(200).json(products);
+    } else {
+      res.status(404).json({ error: "No products found." });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   generateUploadURL,
   addRing,
@@ -268,5 +330,7 @@ module.exports = {
   findRingByActive,
   updateRingField,
   getRingByProductNo,
-  isProductNumberTaken
+  isProductNumberTaken,
+  getProductByPage,
+  getProductByProductType,
 };

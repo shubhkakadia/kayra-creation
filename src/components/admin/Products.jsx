@@ -81,8 +81,10 @@ const AdminProductsPage = () => {
     "Bracelet",
     "Earring",
     "Ring",
+    "Bangle",
     "Men's Jewellery",
   ];
+
   // const clarityRangeList = ["FL", "IF", "VVS1", "VVS2", "VS1", "VS2", "SI1", "SI2", "I1", "I2", "I3"];
   // const colorRangeList = ["D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
 
@@ -92,6 +94,7 @@ const AdminProductsPage = () => {
     error: [],
   });
 
+  
   const [validationErrors, setValidationErrors] = useState({});
 
   const indexOfLastRecord = currentPage * recordsPerPage;
@@ -120,16 +123,16 @@ const AdminProductsPage = () => {
   const [newProduct, setNewProduct] = useState(initialState);
 
   useEffect(() => {
-    getallproducts("rings");
+    getallproducts(selectedProductType);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedProductType]);
 
-  const getallproducts = (product) => {
+  const getallproducts = (productType) => {
     setAllproducts({ ...allproducts, load: true });
     let config = {
       method: "get",
       maxBodyLength: Infinity,
-      url: `${process.env.REACT_APP_API_URL}${product}/getall`,
+      url: `${process.env.REACT_APP_API_URL}rings/getall/${productType}`,
       headers: {},
     };
 

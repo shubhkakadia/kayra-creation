@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 // import Loader from "./Loader";
-import { ringCategoryLinks } from "./data/ringShopHighlights";
+import { shopCategories } from "./data/ShopCategories";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { RxCross2 } from "react-icons/rx";
 
@@ -102,19 +102,23 @@ export default function Shop() {
   useEffect(() => {
     getallproducts(selected_shop);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selected_shop]);
 
-  const getallproducts = (product) => {
+  const getallproducts = (productType) => {
     setAllproducts({ ...allproducts, load: true });
+  
     let config = {
       method: "get",
       maxBodyLength: Infinity,
-      url: `${serverApi}${product}/getall`,
-      headers: {},
+      
+      url: `${serverApi}rings/getall/${productType}`,
+      headers: {
+        "Content-Type": "application/json",
+      },
     };
-
+  
     console.log(config.url);
-
+  
     axios
       .request(config)
       .then((response) => {
@@ -409,20 +413,23 @@ export default function Shop() {
       {/* category links */}
       <div className="m-4">
         <div className="flex overflow-x-auto gap-4 md:justify-center hide-scrollbar">
-          {ringCategoryLinks.map((link, key) => (
-            <div onClick={() => navigate(link.link)} className="min-w-[150px]">
-              <div class="rounded overflow-hidden shadow-md cursor-pointer">
-                <img
-                  className="md:w-[150px] md:h-[120px] object-cover"
-                  src={link.image}
-                  alt={link.name}
-                />
-              </div>
-              <div class="py-2">
-                <div class="text-center text-[15px]">{link.name}</div>
-              </div>
-            </div>
-          ))}
+        {shopCategories
+  .find(e => e.productType === selected_shop)
+  ?.categories.map((link, key) => (
+    <div key={key} onClick={() => navigate(link.link)} className="min-w-[150px]">
+      <div className="rounded overflow-hidden shadow-md cursor-pointer">
+        <img
+          className="md:w-[150px] md:h-[120px] object-cover"
+          src={link.image}
+          alt={link.name}
+        />
+      </div>
+      <div className="py-2">
+        <div className="text-center text-[15px]">{link.name}</div>
+      </div>
+    </div>
+  ))
+}
         </div>
       </div>
 

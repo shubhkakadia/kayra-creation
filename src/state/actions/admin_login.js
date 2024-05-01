@@ -9,7 +9,7 @@ export const adminLogin = (admin) => (dispatch) => {
   let config = {
     method: "post",
     maxBodyLength: Infinity,
-    url: `${process.env.REACT_APP_API_URL}/admin/login`,
+    url: `${process.env.REACT_APP_API_URL}admin/login`,
     headers: {
       "Content-Type": "application/json",
     },

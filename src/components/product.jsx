@@ -96,7 +96,7 @@ export default function Product() {
     let config = {
       method: "get",
       maxBodyLength: Infinity,
-      url: `${serverApi}${selected_shop}/getbyproductno/${productNo}`,
+      url: `${serverApi}rings/getbyproductno/${productNo}`,
       headers: {},
     };
 

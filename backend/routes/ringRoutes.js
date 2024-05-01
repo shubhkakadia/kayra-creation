@@ -13,7 +13,9 @@ const {
   updateRingField,
   generateUploadURL,
   getRingByProductNo,
-  isProductNumberTaken
+  isProductNumberTaken,
+  getProductByPage,
+  getProductByProductType
 } = require("../controller/ringController");
 
 router.use(bodyparser.json());
@@ -48,6 +50,12 @@ router.post("/uploadurl", generateUploadURL);
 
 // Route to check if product number already exists.
 router.post("/checkproductno", isProductNumberTaken)
+
+// Router to get products by page  from the request body.
+router.post("/getbyProductType", getProductByPage)
+
+// Router to get products by page  from the request body.
+router.get("/getall/:productType", getProductByProductType)
 
 
 module.exports = router;
