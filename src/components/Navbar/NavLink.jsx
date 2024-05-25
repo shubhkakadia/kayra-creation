@@ -71,7 +71,7 @@ export default function NavLink(props) {
                             to={mysublinks.link}
                             className="hover:text-main-blue text-gray-600 no-underline"
                             onClick={() =>
-                              dispatch(setSelectedShop(mysublinks.productType))
+                              dispatch(setSelectedShop(mysublinks.category))
                             }
                           >
                             {mysublinks.head}
@@ -132,7 +132,7 @@ export default function NavLink(props) {
                         onClick={() => {
                           props?.onClose();
                           setHeading({});
-                          dispatch(setSelectedShop(mysublinks.productType));
+                          dispatch(setSelectedShop(mysublinks.category));
                         }}
                         className="py-3 pl-7 font-semibold md:pr-0 pr-5 text-[17px] text-gray-600 no-underline"
                       >

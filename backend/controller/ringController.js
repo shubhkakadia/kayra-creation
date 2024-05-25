@@ -55,9 +55,10 @@ const addRing = async (req, res) => {
       priceUSD,
       productNo,
       active,
-      productType,
+      collection,
       designNo,
       jobNo,
+      subCategory,
     } = req.body;
 
     const newRing = new Ring({
@@ -76,9 +77,10 @@ const addRing = async (req, res) => {
       priceUSD,
       productNo,
       active,
-      productType,
+      collection,
       designNo,
       jobNo,
+      subCategory,
     });
 
     await newRing.save();
@@ -201,7 +203,7 @@ const updateRingField = async (req, res) => {
     // Assuming `Ring` is your model connected to the 'rings' collection
     const result = await Ring.updateMany(
       {}, // empty filter to match all documents
-      { $set: { productType: "ring" } } // update operation to add productType field
+      { $set: { category: "ring" } } // update operation to add category field
     );
 
     res
@@ -260,16 +262,16 @@ const isProductNumberTaken = async (req, res) => {
 const getProductByPage = async (req, res) => {
   console.log("by", req.params);
   try {
-    const {productType, page, startIndex, endIndex } = req.body;
-    // const productType = req.params; // Extract productType from the URL path
+    const {category, page, startIndex, endIndex } = req.body;
+    // const category = req.params; // Extract category from the URL path
 
     console.log("page", page);
     console.log("startIndex", startIndex);
     console.log("endIndex", endIndex);
-    console.log("productType", productType);
+    console.log("category", category);
 
     // Validate the required parameters
-    if (!page || !startIndex || !endIndex || !productType) {
+    if (!page || !startIndex || !endIndex || !category) {
       return res.status(400).json({ error: "Missing required parameters." });
     }
 
@@ -278,12 +280,12 @@ const getProductByPage = async (req, res) => {
     const limit = endIndex - startIndex + 1;
 
     // Find the products based on the product type, skip, and limit
-    const products = await Ring.find({ productType: productType })
+    const products = await Ring.find({ category: category })
       .skip(skip)
       .limit(limit);
 
     if (products.length > 0) {
-      console.log(`Products found for page ${page}, startIndex ${startIndex}, endIndex ${endIndex}, and productType ${productType}`);
+      console.log(`Products found for page ${page}, startIndex ${startIndex}, endIndex ${endIndex}, and category ${category}`);
       res.status(200).json(products);
     } else {
       res.status(404).json({ error: "No products found." });
@@ -294,21 +296,21 @@ const getProductByPage = async (req, res) => {
   }
 };
 
-const getProductByProductType = async (req, res) => {
+const getProductByCategory = async (req, res) => {
   try {
-    const productType = req.params.productType;
+    const category = req.params.category;
 
 
     // Validate the required parameters
-    if ( !productType) {
+    if ( !category) {
       return res.status(400).json({ error: "Missing required parameters." });
     }
 
     // Find the products based on the product type, skip, and limit
-    const products = await Ring.find({ productType: { $regex: new RegExp(`^${productType}$`, "i") } })
+    const products = await Ring.find({ category: { $regex: new RegExp(`^${category}$`, "i") } })
 
     if (products.length > 0) {
-      console.log(`Products found for productType ${productType}`);
+      console.log(`Products found for category ${category}`);
       res.status(200).json(products);
     } else {
       res.status(404).json({ error: "No products found." });
@@ -318,6 +320,36 @@ const getProductByProductType = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+const getProductsByCategoryAndCollection = async (req, res) => {
+  try {
+    const category = req.params.category;
+    const { collections } = req.body;
+    console.log(req.body);
+
+    let query = { category: { $regex: new RegExp(`^${category}$`, "i") } };
+
+    if (collections && Array.isArray(collections) && collections.length > 0) {
+      // Convert the collections to regular expressions with case-insensitive flag
+      const collectionRegex = collections.map(collection => new RegExp(`^${collection}$`, "i"));
+      query.collection = { $in: collectionRegex };
+    }
+
+    // Find the products based on the category and collection (if provided)
+    const products = await Ring.find(query);
+
+    if (products.length > 0) {
+      console.log(`Products found for category ${category} and collections ${collections}`);
+      res.status(200).json(products);
+    } else {
+      res.status(404).json({ error: "No products found." });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 
 module.exports = {
   generateUploadURL,
@@ -332,5 +364,6 @@ module.exports = {
   getRingByProductNo,
   isProductNumberTaken,
   getProductByPage,
-  getProductByProductType,
+  getProductByCategory,
+  getProductsByCategoryAndCollection,
 };

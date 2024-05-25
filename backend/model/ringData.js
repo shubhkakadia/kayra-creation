@@ -10,7 +10,7 @@ const ringSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    productType: {
+    collection: {
       type: String,
       require: true,
     },
@@ -70,6 +70,10 @@ const ringSchema = new mongoose.Schema(
       require: true,
     },
     jobNo: {
+      type: String,
+      require: true,
+    },
+    subCategory: {
       type: String,
       require: true,
     },

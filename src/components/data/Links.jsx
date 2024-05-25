@@ -15,7 +15,7 @@ export const links = [
     sublinks: [
       {
         head: "Bangles",
-        productType: "Bangle",
+        category: "Bangle",
         link: "/Jewellery/Shop/Bangles",
         sublink: [
           {
@@ -34,7 +34,7 @@ export const links = [
       },
       {
         head: "Earrings",
-        productType: "Earring",
+        category: "Earring",
         link: "/Jewellery/Shop/Earrings",
         sublink: [
           {
@@ -85,7 +85,7 @@ export const links = [
       },
       {
         head: "Pendants",
-        productType: "Pendant",
+        category: "Pendant",
         link: "/Jewellery/Shop/Pendants",
         sublink: [
           {
@@ -120,7 +120,7 @@ export const links = [
       },
       {
         head: "Rings",
-        productType: "Ring",
+        category: "Ring",
         link: "/Jewellery/Shop/Rings",
         sublink: [
           {
@@ -179,7 +179,7 @@ export const links = [
       },
       {
         head: "Bracelets",
-        productType: "Bracelet",
+        category: "Bracelet",
         link: "/Jewellery/Shop/Bracelets",
         sublink: [
           {
@@ -218,7 +218,7 @@ export const links = [
       },
       {
         head: "Necklaces",
-        productType: "Necklace",
+        category: "Necklace",
         link: "/Jewellery/Shop/Necklaces",
         sublink: [
           {

@@ -12,15 +12,6 @@ import axios from "axios";
 
 import validator from "validator";
 
-import {
-  PutObjectCommand,
-  S3Client,
-  GetObjectCommand,
-} from "@aws-sdk/client-s3";
-
-import temp_image from "../../assets/Bangles-home.jpg";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-
 const AdminProductsPage = () => {
   const serverApi = process.env.REACT_APP_API_URL;
   const [selectProduct, setSelectProduct] = useState(null);
@@ -45,7 +36,7 @@ const AdminProductsPage = () => {
   const [maxPrice, setMaxPrice] = useState("");
   const [minCarat, setMinCarat] = useState("");
   const [maxCarat, setMaxCarat] = useState("");
-  const [selectedProductType, setSelectedProductType] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const [selectedMetalColors, setSelectedMetalColors] = useState([]);
   const [selectedClarity, setSelectedClarity] = useState([]);
@@ -75,7 +66,7 @@ const AdminProductsPage = () => {
     }
   };
 
-  const productTypeList = [
+  const categoryList = [
     "Necklace",
     "Pendant",
     "Bracelet",
@@ -110,29 +101,30 @@ const AdminProductsPage = () => {
     netWeight: "",
     goldPurity: "",
     priceUSD: "",
-    category: "",
+    collection: "",
     dateAdded: new Date().toISOString().slice(0, 16), // Default to current date
     descriptionDetails: "",
     active: true,
-    productType: "",
+    category: "",
     designNo: "",
     jobNo: "",
+    subCategory: "",
     images: [],
   };
 
   const [newProduct, setNewProduct] = useState(initialState);
 
   useEffect(() => {
-    getallproducts(selectedProductType);
+    getallproducts(selectedCategory);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProductType]);
+  }, [selectedCategory]);
 
-  const getallproducts = (productType) => {
+  const getallproducts = (category) => {
     setAllproducts({ ...allproducts, load: true });
     let config = {
       method: "get",
       maxBodyLength: Infinity,
-      url: `${process.env.REACT_APP_API_URL}rings/getall/${productType}`,
+      url: `${process.env.REACT_APP_API_URL}rings/getall/${category}`,
       headers: {},
     };
 
@@ -273,7 +265,7 @@ const AdminProductsPage = () => {
     minCarat,
     maxCarat,
     ActiveToggle,
-    selectedProductType
+    selectedCategory
   ) => {
     // Function to filter by search term
     const filterBySearchTerm = (products) => {
@@ -294,17 +286,17 @@ const AdminProductsPage = () => {
     };
 
     // Function to sort by price
-    const sortByProductType = (products) => {
-      if (selectedProductType) {
+    const sortByCategory = (products) => {
+      if (selectedCategory) {
         return products.filter(
           (product) =>
-            product.productType.toLowerCase() ===
-            selectedProductType.toLowerCase()
+            product.category.toLowerCase() ===
+            selectedCategory.toLowerCase()
         );
       }
       return products;
 
-      // if (selectedProductType === "Active") {
+      // if (selectedCategory === "Active") {
       //   return products.filter((product) => product.active === true);
       // } else if (ActiveToggle === "Inactive") {
       //   return products.filter((product) => product.active === false);
@@ -374,8 +366,8 @@ const AdminProductsPage = () => {
       // Apply search filter
       result = filterBySearchTerm(result);
 
-      // Apply product type filter
-      result = sortByProductType(result);
+      // Apply category filter
+      result = sortByCategory(result);
 
       // Apply sorting
       result = sortByPrice(result);
@@ -412,7 +404,7 @@ const AdminProductsPage = () => {
       minCarat,
       maxCarat,
       ActiveToggle,
-      selectedProductType,
+      selectedCategory,
     ]);
 
     return filteredData;
@@ -430,7 +422,7 @@ const AdminProductsPage = () => {
     minCarat,
     maxCarat,
     ActiveToggle,
-    selectedProductType
+    selectedCategory
   );
 
   const uniqueMetalColors = useMemo(() => {
@@ -455,13 +447,13 @@ const AdminProductsPage = () => {
     return Array.from(goldPurity);
   }, [allproducts]);
 
-  const productTypes = useMemo(() => {
-    const types = new Set();
-    allproducts?.success?.forEach((product) =>
-      types.add(product.productType.toLowerCase())
-    );
-    return Array.from(types);
-  }, [allproducts]);
+  // const categories = useMemo(() => {
+  //   const types = new Set();
+  //   allproducts?.success?.forEach((product) =>
+  //     types.add(product.category.toLowerCase())
+  //   );
+  //   return Array.from(types);
+  // }, [allproducts]);
 
   const currentRecords = filteredData?.slice(
     indexOfFirstRecord,
@@ -480,15 +472,16 @@ const AdminProductsPage = () => {
     metalColor: "Metal Color",
     goldPurity: "Gold Purity",
     price: "Price",
-    category: "Category",
+    collection: "Collection",
     active: "Active Status",
     dateAdded: "Date Added",
     descriptionDetails: "Description",
     netWeight: "Net Weight",
     priceUSD: "Price (USD)",
-    productType: "Product Type",
+    category: "Category",
     designNo: "Design Number",
     jobNo: "Job Number",
+    subCategory: "Sub Category",
   };
 
   const editableFieldsInitialState = {
@@ -498,7 +491,7 @@ const AdminProductsPage = () => {
     colorRange: false,
     metalColor: false,
     goldPurity: false,
-    category: false,
+    collection: false,
     netWEight: false,
     dateAdded: false,
     active: false,
@@ -604,7 +597,7 @@ const AdminProductsPage = () => {
     );
 
     if (isValid) {
-      add_product(newProduct.productType.toLocaleLowerCase(), newProduct);
+      add_product(newProduct.category.toLocaleLowerCase(), newProduct);
     } else {
       toast.error(`Please correct the errors before saving.`);
     }
@@ -616,8 +609,8 @@ const AdminProductsPage = () => {
     switch (field) {
       case "productNo":
       case "name":
-      case "productType":
       case "category":
+      case "collection":
       case "colorRange":
       case "clarityRange":
       case "metalColor":
@@ -626,6 +619,7 @@ const AdminProductsPage = () => {
       case "descriptionDetails":
       case "designNo":
       case "jobNo":
+      case "subCategory":
         isValid = !validator.isEmpty(value);
         break;
       case "caratWt":
@@ -725,12 +719,12 @@ const AdminProductsPage = () => {
         <div>
           <select
             id="sort-by"
-            value={selectedProductType}
-            onChange={(e) => setSelectedProductType(e.target.value)}
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
             className="border p-2 rounded-md focus:outline-none cursor-pointer"
           >
             <option value="">All</option>
-            {productTypeList.map((type, index) => (
+            {categoryList.map((type, index) => (
               <option key={index} value={type}>
                 {type.charAt(0).toUpperCase() + type.slice(1)}
               </option>
@@ -1158,8 +1152,8 @@ const AdminProductsPage = () => {
                   US${product.priceUSD}
                 </p>
                 <p className="text-gray-700">
-                  {product.productType.charAt(0).toUpperCase() +
-                    product.productType.slice(1)}
+                  {product.category.charAt(0).toUpperCase() +
+                    product.category.slice(1)}
                 </p>
               </div>
               <div className="flex justify-center pb-4">
@@ -1301,7 +1295,7 @@ const AdminProductsPage = () => {
                 .filter((field) =>
                   [
                     "name",
-                    "productType",
+                    "category",
                     "caratWt",
                     "colorRange",
                     "clarityRange",
@@ -1309,7 +1303,7 @@ const AdminProductsPage = () => {
                     "netWEight",
                     "goldPurity",
                     "price",
-                    "category",
+                    "collection",
                     "dateAdded",
                     "descriptionDetails",
                     "netWeight",
@@ -1412,7 +1406,7 @@ const AdminProductsPage = () => {
                     [
                       "productNo",
                       "name",
-                      "productType",
+                      "category",
                       "caratWt",
                       "colorRange",
                       "clarityRange",
@@ -1420,13 +1414,14 @@ const AdminProductsPage = () => {
                       "netWEight",
                       "goldPurity",
                       "price",
-                      "category",
+                      "collection",
                       "dateAdded",
                       "descriptionDetails",
                       "netWeight",
                       "priceUSD",
                       "designNo",
                       "jobNo",
+                      "subCategory",
                     ].includes(field)
                   )
                   .map((field) => (
@@ -1450,7 +1445,7 @@ const AdminProductsPage = () => {
                             }`}
                           />
                         </div>
-                      ) : field === "productType" ? (
+                      ) : field === "category" ? (
                         <div>
                           <input
                             type="text"
@@ -1466,10 +1461,10 @@ const AdminProductsPage = () => {
                                 ? "border-red-500"
                                 : "border-gray-300"
                             }`}
-                            list="productTypeOptions"
+                            list="categoryOptions"
                           />
-                          <datalist id="productTypeOptions">
-                            {productTypeList.map((type) => (
+                          <datalist id="categoryOptions">
+                            {categoryList.map((type) => (
                               <option key={type} value={type} />
                             ))}
                           </datalist>

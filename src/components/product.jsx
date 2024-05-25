@@ -129,8 +129,8 @@ export default function Product() {
 
   console.log(selectedProduct);
 
-  const getSizeData = (productType) => {
-    switch (productType.toLowerCase()) {
+  const getSizeData = (category) => {
+    switch (category.toLowerCase()) {
       case "ring":
         return ringSizes;
       case "bracelet":
@@ -277,7 +277,7 @@ export default function Product() {
                   {isSizeDropdownOpen && (
                     <div className="absolute z-10 mt-2 w-full rounded-lg bg-white shadow-lg border border-gray-200">
                       <div className="grid grid-cols-3 gap-2 p-2">
-                        {getSizeData(selectedProduct.success.productType).map(
+                        {getSizeData(selectedProduct.success.category).map(
                           (size) => (
                             <button
                               key={size.size || size.inch}

@@ -15,7 +15,8 @@ const {
   getRingByProductNo,
   isProductNumberTaken,
   getProductByPage,
-  getProductByProductType
+  getProductByCategory,
+  getProductsByCategoryAndCollection,
 } = require("../controller/ringController");
 
 router.use(bodyparser.json());
@@ -49,13 +50,15 @@ router.post("/updatefield", updateRingField);
 router.post("/uploadurl", generateUploadURL);
 
 // Route to check if product number already exists.
-router.post("/checkproductno", isProductNumberTaken)
+router.post("/checkproductno", isProductNumberTaken);
 
 // Router to get products by page  from the request body.
-router.post("/getbyProductType", getProductByPage)
+router.post("/getbyCategory", getProductByPage);
 
 // Router to get products by page  from the request body.
-router.get("/getall/:productType", getProductByProductType)
+router.get("/getall/:category", getProductByCategory);
 
+// Router to get products by collection filtered on shop page.
+router.post("/getbycollection/:category", getProductsByCategoryAndCollection);
 
 module.exports = router;

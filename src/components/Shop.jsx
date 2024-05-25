@@ -5,6 +5,7 @@ import { useNavigate } from "react-router";
 import { shopCategories } from "./data/ShopCategories";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { RxCross2 } from "react-icons/rx";
+import { useParams } from "react-router";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import {
@@ -24,6 +25,9 @@ import "swiper/css/scrollbar";
 import axios from "axios";
 import Loader from "./Loader";
 import { setSelectedProduct } from "../state/actions/selected_product";
+import { setSelectedShop } from "../state/actions/selected_shop";
+
+import { links } from "./data/Links";
 
 export default function Shop() {
   const serverApi = process.env.REACT_APP_API_URL;
@@ -41,9 +45,9 @@ export default function Shop() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [selectedCategory, setSelectedCategory] = useState([]);
+  const [selectedCollection, setSelectedCollection] = useState([]);
   const [selectedMetal, setSelectedMetal] = useState([]);
-  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [isCollectionOpen, setIsCollectionOpen] = useState(false);
   const [isMetalColorOpen, setIsMetalColorOpen] = useState(false);
   const [isPriceRangeOpen, setIsPriceRangeOpen] = useState(false);
   const [priceOptions, setPriceOptions] = useState("");
@@ -55,6 +59,8 @@ export default function Shop() {
   // Assume these states track the selected options
   const [selectedFilter, setSelectedFilter] = useState("");
   const [selectedSort, setSelectedSort] = useState("");
+
+  const { category } = useParams();
 
   const options = [
     "Recommendations",
@@ -83,10 +89,10 @@ export default function Shop() {
     return priceOptions;
   }
 
-  const categoryOptions = useMemo(() => {
+  const collectionOptions = useMemo(() => {
     const categories = new Set();
     allproducts?.success?.forEach((product) =>
-      categories.add(product.category)
+      categories.add(product.collection)
     );
     return Array.from(categories);
   }, [allproducts]);
@@ -100,37 +106,66 @@ export default function Shop() {
   console.log(selected_shop);
 
   useEffect(() => {
-    getallproducts(selected_shop);
+    setAllproducts({
+      load: false,
+      success: [],
+      error: [],
+    });
+    setSelectedShop()
+    getProductsByCategoryAndCollection();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected_shop]);
+  }, [selected_shop, category]);
 
-  const getallproducts = (productType) => {
+  const getProductsByCategoryAndCollection = () => {
     setAllproducts({ ...allproducts, load: true });
-  
+    let data = JSON.stringify({"collections": []});
+    console.log(category);
+    let newCategory = selected_shop;
+
+    if (category.includes("-")) {
+      // Extract collection and category from the URL params
+      const splitValue = category.split("-");
+      newCategory = splitValue.pop();
+
+      // Remove the "s" from the end of the category
+      if (newCategory.endsWith("s")) {
+        newCategory = newCategory.slice(0, -1);
+      }
+
+      const collection = splitValue.join("-");
+      console.log(newCategory);
+      console.log(collection);
+
+      data = JSON.stringify({
+        "collections": [collection],
+      });
+    }
+
+    console.log(data);
+
     let config = {
-      method: "get",
+      method: "post",
       maxBodyLength: Infinity,
-      
-      url: `${serverApi}rings/getall/${productType}`,
+      url: `${serverApi}rings/getbycollection/${newCategory}`,
       headers: {
         "Content-Type": "application/json",
       },
+      data: data,
     };
-  
-    console.log(config.url);
-  
+
+    console.log(config);
+
     axios
       .request(config)
       .then((response) => {
         console.log(response.data);
         setAllproducts({ ...allproducts, success: response.data, load: false });
-        // dispatch(success(response.data));
       })
-      .catch((err) => {
-        console.log(err);
-        setAllproducts({ ...allproducts, error: err, load: false });
-        // dispatch(error(err.response.data));
+      .catch((error) => {
+        console.log(error);
+        setAllproducts({ ...allproducts, error: error, load: false });
       });
+    
   };
 
   const [isLiked, setIsLiked] = useState(false);
@@ -207,13 +242,15 @@ export default function Shop() {
     return [...products].sort((a, b) => b.priceUSD - a.priceUSD);
   };
 
-  const handleCategoryChange = (selected) => {
-    if (selectedCategory.includes(selected)) {
-      // If the category is already selected, remove it from the array
-      setSelectedCategory(selectedCategory.filter((item) => item !== selected));
+  const handleCollectionChange = (selected) => {
+    if (selectedCollection.includes(selected)) {
+      // If the collection is already selected, remove it from the array
+      setSelectedCollection(
+        selectedCollection.filter((item) => item !== selected)
+      );
     } else {
-      // If the category is not selected, add it to the array
-      setSelectedCategory([...selectedCategory, selected]);
+      // If the collection is not selected, add it to the array
+      setSelectedCollection([...selectedCollection, selected]);
     }
   };
 
@@ -255,10 +292,10 @@ export default function Shop() {
 
   const handleMetalChange = (selected) => {
     if (selectedMetal.includes(selected)) {
-      // If the category is already selected, remove it from the array
+      // If the metal is already selected, remove it from the array
       setSelectedMetal(selectedMetal.filter((item) => item !== selected));
     } else {
-      // If the category is not selected, add it to the array
+      // If the metal is not selected, add it to the array
       setSelectedMetal([...selectedMetal, selected]);
     }
   };
@@ -266,7 +303,7 @@ export default function Shop() {
   const useProductFilters = (
     allproducts,
     sortBySelectedOption,
-    selectedCategory,
+    selectedCollection,
     selectedMetal,
     priceRange,
     minPrice,
@@ -295,10 +332,10 @@ export default function Shop() {
       // setProducts(sortedProducts);
     };
 
-    const handleCategoryFilter = (product) => {
-      if (selectedCategory.length > 0) {
+    const handleCollectionFilter = (product) => {
+      if (selectedCollection.length > 0) {
         return product.filter((product) =>
-          selectedCategory.includes(product.category)
+          selectedCollection.includes(product.collection)
         );
       }
       return product;
@@ -330,7 +367,7 @@ export default function Shop() {
 
       results = handleSortSelection(results);
       results = handleMetalFilter(results);
-      results = handleCategoryFilter(results);
+      results = handleCollectionFilter(results);
       setPriceOptions(generatePriceOptions(results));
       results = handlePriceFilter(results, minPrice, maxPrice);
 
@@ -343,7 +380,7 @@ export default function Shop() {
     }, [
       allproducts,
       sortBySelectedOption,
-      selectedCategory,
+      selectedCollection,
       selectedMetal,
       priceRange,
       minPrice,
@@ -356,7 +393,7 @@ export default function Shop() {
   const products = useProductFilters(
     allproducts,
     sortBySelectedOption,
-    selectedCategory,
+    selectedCollection,
     selectedMetal,
     priceRange,
     minPrice,
@@ -377,18 +414,22 @@ export default function Shop() {
       swiperRef.current.autoplay.stop(); // Stop autoplay when the mouse leaves
     }
   };
-  
+
+  const handleCollection = (link) => {
+    navigate(link);
+  };
+
   // Function to check if click is outside the dropdown
   // const handleClickOutside = (event) => {
   //   if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
   //     setIsMetalColorOpen(false);
-  //     setIsCategoryOpen(false);
+  //     setIsCollectionOpen(false);
   //     setSortByIsOpen(false);
   //   }
   // };
   // const handleScroll = () => {
   //   setIsMetalColorOpen(false);
-  //   setIsCategoryOpen(false);
+  //   setIsCollectionOpen(false);
   //   setSortByIsOpen(false);
   // };
 
@@ -410,26 +451,29 @@ export default function Shop() {
       <h1 className="font-quicksand text-center text-[30px]">
         {selected_shop}
       </h1>
-      {/* category links */}
+      {/* collection links */}
       <div className="m-4">
         <div className="flex overflow-x-auto gap-4 md:justify-center hide-scrollbar">
-        {shopCategories
-  .find(e => e.productType === selected_shop)
-  ?.categories.map((link, key) => (
-    <div key={key} onClick={() => navigate(link.link)} className="min-w-[150px]">
-      <div className="rounded overflow-hidden shadow-md cursor-pointer">
-        <img
-          className="md:w-[150px] md:h-[120px] object-cover"
-          src={link.image}
-          alt={link.name}
-        />
-      </div>
-      <div className="py-2">
-        <div className="text-center text-[15px]">{link.name}</div>
-      </div>
-    </div>
-  ))
-}
+          {shopCategories
+            .find((e) => e.category === selected_shop)
+            ?.categories.map((link, key) => (
+              <div
+                key={key}
+                onClick={() => handleCollection(link.link)}
+                className="min-w-[150px]"
+              >
+                <div className="rounded overflow-hidden shadow-md cursor-pointer">
+                  <img
+                    className="md:w-[150px] md:h-[120px] object-cover"
+                    src={link.image}
+                    alt={link.name}
+                  />
+                </div>
+                <div className="py-2">
+                  <div className="text-center text-[15px]">{link.name}</div>
+                </div>
+              </div>
+            ))}
         </div>
       </div>
 
@@ -457,8 +501,8 @@ export default function Shop() {
                       {/* <input
                       type="checkbox"
                       value={option}
-                      checked={category.includes(option)}
-                      onChange={() => handleCategoryChange(option)}
+                      checked={collection.includes(option)}
+                      onChange={() => handleCollectionChange(option)}
                       className="h-5 w-5 cursor-pointer"
                     /> */}
                       <span
@@ -496,8 +540,8 @@ export default function Shop() {
                         {/* <input
                       type="checkbox"
                       value={option}
-                      checked={category.includes(option)}
-                      onChange={() => handleCategoryChange(option)}
+                      checked={collection.includes(option)}
+                      onChange={() => handleCollectionChange(option)}
                       className="h-5 w-5 cursor-pointer"
                     /> */}
                         <span
@@ -542,30 +586,30 @@ export default function Shop() {
             <div>
               <div
                 className="flex cursor-pointer items-center w-[100px] justify-around"
-                onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+                onClick={() => setIsCollectionOpen(!isCollectionOpen)}
               >
-                <h6>Category</h6>
-                <h6>{isCategoryOpen ? <FaAngleUp /> : <FaAngleDown />}</h6>
+                <h6>Collection</h6>
+                <h6>{isCollectionOpen ? <FaAngleUp /> : <FaAngleDown />}</h6>
               </div>
 
-              {isCategoryOpen && (
+              {isCollectionOpen && (
                 <div className="absolute z-10 mt-2 rounded-lg bg-white shadow-lg border border-gray-200">
-                  {categoryOptions.map((option) => (
+                  {collectionOptions.map((option) => (
                     <label
                       key={option}
                       className="px-4 py-2 flex items-center cursor-pointer hover:bg-gray-50 rounded-lg"
-                      onClick={() => handleCategoryChange(option)}
+                      onClick={() => handleCollectionChange(option)}
                     >
                       {/* <input
                       type="checkbox"
                       value={option}
-                      checked={category.includes(option)}
-                      onChange={() => handleCategoryChange(option)}
+                      checked={collection.includes(option)}
+                      onChange={() => handleCollectionChange(option)}
                       className="h-5 w-5 cursor-pointer"
                     /> */}
                       <span
                         className={`ml-2 text-sm ${
-                          selectedCategory.includes(option)
+                          selectedCollection.includes(option)
                             ? "text-purple-500"
                             : "text-gray-700"
                         } `}
@@ -626,13 +670,13 @@ export default function Shop() {
               </button>
             </div>
           ))}
-          {selectedCategory.map((item, key) => (
+          {selectedCollection.map((item, key) => (
             <div key={key}>
               <button
                 onClick={() => {
                   // Update the state to filter out this item
-                  setSelectedCategory(
-                    selectedCategory.filter((_, index) => index !== key)
+                  setSelectedCollection(
+                    selectedCollection.filter((_, index) => index !== key)
                   );
                 }}
                 className="bg-gray-200 rounded px-3 py-1 text-sm font-semibold text-gray-600 mr-2 mb-2 shadow-sm flex items-center gap-1 group hover:text-purple-500"
@@ -730,19 +774,21 @@ export default function Shop() {
                   )}
                 </div>
 
-                {/* Category Options */}
+                {/* Collection Options */}
                 <div>
-                  <button onClick={() => setIsCategoryOpen(!isCategoryOpen)}>
-                    Category
+                  <button
+                    onClick={() => setIsCollectionOpen(!isCollectionOpen)}
+                  >
+                    Collection
                   </button>
-                  {isCategoryOpen && (
+                  {isCollectionOpen && (
                     <div>
-                      {categoryOptions.map((option) => (
+                      {collectionOptions.map((option) => (
                         <label key={option} className="flex items-center gap-2">
                           <input
                             type="checkbox"
-                            checked={selectedCategory.includes(option)}
-                            onChange={() => handleCategoryChange(option)}
+                            checked={selectedCollection.includes(option)}
+                            onChange={() => handleCollectionChange(option)}
                           />
                           <span>{option}</span>
                         </label>

@@ -34,7 +34,7 @@ import necklacePendant from "../../assets/shop categories/necklacePendant.jpg";
 
 export const shopCategories = [
   {
-    productType: "Bangle",
+    category: "Bangle",
     categories: [
       {
         name: "Flexi",
@@ -54,7 +54,7 @@ export const shopCategories = [
     ],
   },
   {
-    productType: "Earring",
+    category: "Earring",
     categories: [
       {
         name: "Studs",
@@ -84,7 +84,7 @@ export const shopCategories = [
     ],
   },
   {
-    productType: "Pendant",
+    category: "Pendant",
     categories: [
       {
         name: "Daily Wear",
@@ -114,7 +114,7 @@ export const shopCategories = [
     ],
   },
   {
-    productType: "Ring",
+    category: "Ring",
     categories: [
       {
         name: "Eternity",
@@ -144,7 +144,7 @@ export const shopCategories = [
     ],
   },
   {
-    productType: "Bracelet",
+    category: "Bracelet",
     categories: [
       {
         name: "Tennis",
@@ -174,7 +174,7 @@ export const shopCategories = [
     ],
   },
   {
-    productType: "Necklace",
+    category: "Necklace",
     categories: [
       {
         name: "Solitaire",
